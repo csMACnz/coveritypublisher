@@ -11,12 +11,12 @@ namespace csmacnz.CoverityPublisher
         {
             var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
 
-            string coverityFileName = "";
-            string repoName = "";
-            string description = "";
-            string coverityToken = "";
-            string email = "";
-            string version = "";
+            string coverityFileName = args.OptZip;
+            string repoName = args.OptToken;
+            string coverityToken = args.OptToken;
+            string description = args.OptDescription;
+            string email = args.OptEmail;
+            string version = args.OptCodeversion;
 
             var client = new HttpClient();
             client.Timeout = TimeSpan.FromMinutes(20);

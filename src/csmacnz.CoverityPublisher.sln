@@ -5,6 +5,16 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csmacnz.CoverityPublisher", "csmacnz.CoverityPublisher\csmacnz.CoverityPublisher.csproj", "{849E5DFB-73F1-46A1-8A21-2D452C9812C8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0BF3780-04B9-466B-957E-D7B5DDA34953}"
+	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+		..\appveyor.yml = ..\appveyor.yml
+		..\Build.environment.ps1 = ..\Build.environment.ps1
+		..\build.tasks.ps1 = ..\build.tasks.ps1
+		..\PublishCoverity.nuspec = ..\PublishCoverity.nuspec
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

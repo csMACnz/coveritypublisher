@@ -1,16 +1,22 @@
-﻿PublishCoverity - a simple command-line publishing tool for coverity's static analysis results.
+﻿PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity 
+  PublishCoverity -z <file> -r <name> -t <token> -e <email> [-d <desc>] [--codeVersion <version>]
   PublishCoverity --version
   PublishCoverity --help
 
 
 Options:
- -h, --help   Show this screen.
- --version    Show version.
+ -z <file>, --zip <file>         The zip file to upload.
+ -r <name>, --repoName <name>    Your repository name in the form of USER/REPO.
+ -e <email>, --email <name>      The email address to notify of the scan.
+ -t <token>, --token <token>     Your Coverity token.
+ -d <desc>, --description <desc> The optional description you want to pass to coverity.  [default: Published by PublishCoverity.exe]
+ --codeVersion <version>         The version of the application to report the coverage for.
+ -h, --help                      Show this screen.
+ --version                       Show version.
 
 What its for:
- Reads your coverity static anaysis results as a zip, and submits it to
- coverity's service. This can be used by your build scripts or with a
- CI builder server.
+ Reads your cov-build results as a zip, and submits it to
+ Coverity Scan Static Analysis service. This can be used by your build 
+ scripts or with a CI builder server.

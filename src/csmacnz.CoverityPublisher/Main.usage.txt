@@ -1,22 +1,27 @@
 ﻿PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity -z <file> -r <name> -t <token> -e <email> [-d <desc>] [--codeVersion <version>]
+  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite]
+  PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] 
   PublishCoverity --version
   PublishCoverity --help
 
 
 Options:
- -z <file>, --zip <file>         The zip file to upload.
- -r <name>, --repoName <name>    Your repository name in the form of USER/REPO.
- -e <email>, --email <name>      The email address to notify of the scan.
- -t <token>, --token <token>     Your Coverity token.
- -d <desc>, --description <desc> The optional description you want to pass to coverity.  [default: Published by PublishCoverity.exe]
- --codeVersion <version>         The version of the application to report the coverage for. [default: 0.1.0]
- -h, --help                      Show this screen.
- --version                       Show version.
+ -i <folder>, --directory <folder>        The folder to zip up for coverity. [default: cov-int]
+ -o <file>, --output <file>               The location to save the zip file to. [default: coverity.zip]
+ --overwrite                              If provided, will automatically overwrite the output file location.
+ -z <file>, --zip <file>                  The zip file to upload. [default: coverity.zip]
+ -r <name>, --repoName <name>             Your repository name in the form of USER/REPO. If missing, will attempt to resolve using Environment variables. [default: ] 
+ -e <email>, --email <name>               The email address to notify of the scan.
+ -t <token>, --token <token>              Your Coverity token.
+ -d <desc>, --description <desc>          The optional description you want to pass to coverity.  [default: Published by PublishCoverity.exe]
+ --codeVersion <version>                  The version of the application to report the coverage for. [default: 0.1.0]
+ -h, --help                               Show this screen.
+ --version                                Show version.
 
 What its for:
- Reads your cov-build results as a zip, and submits it to
- Coverity Scan Static Analysis service. This can be used by your build 
- scripts or with a CI builder server.
+ With compress, you can produce the zip file from your cov-int results folder.
+ With publish, it reads your results zip, and submits it to
+ Coverity Scan Static Analysis service. 
+ These can be used by your build scripts or with a CI builder server.

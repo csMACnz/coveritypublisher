@@ -162,6 +162,6 @@ task postbuild -depends pack, archive
 
 task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
-task appveyor-build -depends build
+task appveyor-build -depends RestoreNuGetPackages, build
 
 task appveyor-test -depends postbuild, appveyor-checkCoverity, coverity

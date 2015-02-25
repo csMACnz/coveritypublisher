@@ -12,7 +12,7 @@ Options:
  -e <email>, --email <name>      The email address to notify of the scan.
  -t <token>, --token <token>     Your Coverity token.
  -d <desc>, --description <desc> The optional description you want to pass to coverity.  [default: Published by PublishCoverity.exe]
- --codeVersion <version>         The version of the application to report the coverage for.
+ --codeVersion <version>         The version of the application to report the coverage for. [default: 0.1.0]
  -h, --help                      Show this screen.
  --version                       Show version.
 

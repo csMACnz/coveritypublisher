@@ -17,6 +17,11 @@ namespace csmacnz.CoverityPublisher
             string description = args.OptDescription;
             string email = args.OptEmail;
             string version = args.OptCodeversion;
+            if (!File.Exists(coverityFileName))
+            {
+                Console.Error.WriteLine("Input file '" + coverityFileName + "' cannot be found");
+                Environment.Exit(1);
+            }
 
             var client = new HttpClient();
             client.Timeout = TimeSpan.FromMinutes(20);
@@ -42,6 +47,18 @@ namespace csmacnz.CoverityPublisher
             }
             Console.WriteLine(task.Result);
             fs.Close();
+        }
+
+        public static string UnQuoted(string theString)
+        {
+            const char singleQuote = '\'';
+            const char doubleQuote = '"';
+            if ((theString[0] == doubleQuote && theString[theString.Length - 1] == doubleQuote)
+                || (theString[0] == singleQuote && theString[theString.Length - 1] == singleQuote))
+            {
+                return theString.Substring(1, theString.Length - 2);
+            }
+            return theString;
         }
     }
 }

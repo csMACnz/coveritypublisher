@@ -23,5 +23,16 @@ namespace csmacnz.CoverityPublisher.Unit.Tests
 
             Assert.Equal("Test", result);
         }
+
+
+        [Fact]
+        public void NoQuotedString_ReturnsWithoutQuotes()
+        {
+            var theString = "Test";
+
+            var result = Program.UnQuoted(theString);
+
+            Assert.Equal("Test", result);
+        }
     }
 }

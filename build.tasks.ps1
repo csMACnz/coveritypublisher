@@ -129,6 +129,31 @@ task coverity -precondition { return $script:runCoverity }{
   $fs.Close()
 }
 
+task ResolveCoverallsPath {
+    $script:coveralls = (Resolve-Path "src/packages/coveralls.net.*/csmacnz.coveralls.exe").ToString()
+}
+
+task coverage -depends build, coverage-only
+
+task coverage-only {
+    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" .\src\csmacnz.CoverityPublisher.Unit.Tests\bin\Release\csmacnz.CoverityPublisher.Unit.Tests.dll .\src\csmacnz.CoverityPublisher.Integration.Tests\bin\Release\csmacnz.CoverityPublisher.Integration.Tests.dll
+    $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
+    
+    $coverageFilePath = $coverageFilePath.ToString()
+    
+    if(Test-Path .\coverage.coveragexml){ rm .\coverage.coveragexml }
+    
+    ."C:\Program Files (x86)\Microsoft Visual Studio 12.0\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe" analyze /output:coverage.coveragexml "$coverageFilePath"
+}
+
+task test-coveralls -depends coverage, ResolveCoverallsPath {
+    exec { & $script:coveralls --vscodecoverage -i coverage.coveragexml --dryrun -o coverallsTestOutput.json --repoToken "NOTAREALTOKEN" }
+}
+
+task coveralls -depends ResolveCoverallsPath {
+    exec { & $script:coveralls --vscodecoverage -i coverage.coveragexml --repoToken $env:COVERALLS_REPO_TOKEN --commitId $env:APPVEYOR_REPO_COMMIT --commitBranch $env:APPVEYOR_REPO_BRANCH --commitAuthor $env:APPVEYOR_REPO_COMMIT_AUTHOR --commitEmail $env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL --commitMessage $env:APPVEYOR_REPO_COMMIT_MESSAGE --jobId $env:APPVEYOR_JOB_ID }
+}
+
 task archive -depends build, archive-only
 
 task archive-only {
@@ -158,10 +183,10 @@ task pack-only {
     exec { nuget pack "$nuget_pack_dir\$nuspec_filename" }
 }
 
-task postbuild -depends pack, archive
+task postbuild -depends pack, archive, coverage-only, coveralls
 
 task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
 task appveyor-build -depends RestoreNuGetPackages, build
 
-task appveyor-test -depends postbuild, appveyor-checkCoverity, coverity
+task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, appveyor-checkCoverity, coverity

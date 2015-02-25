@@ -1,0 +1,6 @@
+language: csharp
+solution: ./src/csmacnz.CoverityPublisher.sln
+install:
+  - nuget restore ./src/csmacnz.CoverityPublisher.sln
+script:
+  - xbuild /p:Configuration=Release ./src/csmacnz.CoverityPublisher.sln

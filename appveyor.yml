@@ -1,0 +1,16 @@
+version: 0.{build}
+os: Windows Server 2012 R2
+environment:
+  COVERITY_TOKEN:
+    secure: FOpEHWVcvSr8cX1ApUOVVkw6ds+9dcSF381tt/YTuB0=
+  COVERITY_EMAIL:
+    secure: UEqRjr6WeJQzmybaDQ1x8vGceHZcnwS/K67lMvLKaiE=
+  COVERALLS_REPO_TOKEN:
+    secure: QDrEvPQa9oEzLz7MU477Y4VDEj0NWGv5w08hr+Jv3kxZSUiStqF96yeofnuR1WkC
+install:
+- ps: .\build.environment.ps1
+- ps: GitVersion /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+build_script:
+- ps: psake .\build.tasks.ps1 appveyor-build
+test_script:
+- ps: psake .\build.tasks.ps1 appveyor-test

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>PublishCoverity</id>
+    <version>{Version}</version>
+    <title>PublishCoverity</title>
+    <authors>csmacnz</authors>
+    <owners>csmacnz</owners>
+    <licenseUrl>https://github.com/csMACnz/coveritypublisher/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/csMACnz/coveritypublisher</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A simple command-line publishing tool for Coverity Scan Static Analysis results.</description>
+    <summary>A simple command-line publishing tool for Coverity Scan Static Analysis results.</summary>
+    <language>en-US</language>
+    <copyright>Copyright 2015</copyright>
+    <tags>coverity scan static analysis upload utility</tags>
+  </metadata>
+</package>

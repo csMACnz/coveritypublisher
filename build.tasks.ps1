@@ -97,12 +97,12 @@ task setup-coverity-local {
 
 task test-coverity -depends setup-coverity-local, coverity
 
-task coverity -precondition { return $script:runCoverity }{
+task coverity -precondition { return $script:runCoverity } {
   & $script:covbuild --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
   Write-Zip -Path "cov-int" -OutputPath $coverityFileName
-  
-  ".src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -r $env:APPVEYOR_REPO_NAME -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
+
+  .src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -r $env:APPVEYOR_REPO_NAME -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
 }
 
 task ResolveCoverallsPath {

@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace csmacnz.CoverityPublisher
 {
@@ -7,10 +8,12 @@ namespace csmacnz.CoverityPublisher
     {
         public static HttpResponseMessage Post(string url, MultipartFormDataContent form)
         {
-            var client = new HttpClient {Timeout = TimeSpan.FromMinutes(20)};
-            var task = client.PostAsync(url, form);
-            task.Wait();
-            return task.Result;
+            using (var client = new HttpClient {Timeout = TimeSpan.FromMinutes(20)})
+            {
+                var task = client.PostAsync(url, form);
+                task.Wait();
+                return task.Result;
+            }
         }
     }
 }

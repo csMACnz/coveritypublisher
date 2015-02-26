@@ -11,48 +11,51 @@ namespace csmacnz.CoverityPublisher
         {
             using (var fs = new FileStream(payload.FileName, FileMode.Open, FileAccess.Read))
             {
-                var form = new MultipartFormDataContent
+                using (var form = new MultipartFormDataContent
                 {
                     {new StringContent(payload.Token), "token"},
                     {new StringContent(payload.Email), "email"},
                     {new StreamContent(fs), "file", payload.FileName},
                     {new StringContent(payload.Version), "version"},
                     {new StringContent(payload.Description), "description"}
-                };
-
-                var url = string.Format("https://scan.coverity.com/builds?project={0}", payload.RepositoryName);
-
-                PublishResult results = new PublishResult
+                })
                 {
-                    Successful = true,
-                };
-                if (payload.SubmitToCoverity)
-                {
-                    try
+
+                    var url = string.Format("https://scan.coverity.com/builds?project={0}", payload.RepositoryName);
+
+                    PublishResult results = new PublishResult
                     {
-                        var response = Client.Post(url, form);
-                        if (response.StatusCode == HttpStatusCode.OK)
+                        Successful = true,
+                    };
+                    if (payload.SubmitToCoverity)
+                    {
+                        try
                         {
-                            results.Message = "Request Submitted Successfully";
+                            var response = Client.Post(url, form);
+                            if (response.StatusCode == HttpStatusCode.OK)
+                            {
+                                results.Message = "Request Submitted Successfully";
+                            }
+                            else
+                            {
+                                results.Successful = false;
+                                results.Message = "There was an error submitting your report: \n" +
+                                                  response.ReasonPhrase;
+                            }
                         }
-                        else
+                        catch (AggregateException exception)
                         {
+                            var ex = exception.InnerException;
                             results.Successful = false;
-                            results.Message = "There was an error submitting your report: \n" + response.ReasonPhrase;
+                            results.Message = "There was an error submitting your report: \n" + ex;
                         }
                     }
-                    catch (AggregateException exception)
+                    else
                     {
-                        var ex = exception.InnerException;
-                        results.Successful = false;
-                        results.Message = "There was an error submitting your report: \n" + ex;
+                        results.Message = "Dry run Successful";
                     }
+                    return results;
                 }
-                else
-                {
-                    results.Message = "Dry run Successful";
-                }
-                return results;
             }
         }
     }

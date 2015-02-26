@@ -64,6 +64,7 @@
     <Compile Include="PublishTests.cs" />
     <Compile Include="TestFramework\ExeTestRunner.cs" />
     <Compile Include="TestFramework\RunResults.cs" />
+    <Compile Include="TestFramework\TestFolders.cs" />
     <Compile Include="UsageTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

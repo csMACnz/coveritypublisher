@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
 using System.Reflection;
 
 namespace csmacnz.CoverityPublisher
@@ -10,43 +9,59 @@ namespace csmacnz.CoverityPublisher
         public static void Main(string[] argv)
         {
             var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
+            if (args.CmdPublish)
+            {
+                var payload = ParseInput(args);
 
+                var results  =CoveritySubmitter.Submit(payload);
+                if (results.Successful)
+                {
+                    Console.Error.WriteLine(results.Message);
+                }
+                else
+                {
+                    Console.Error.WriteLine(results.Message);
+                    Environment.Exit(1);
+                }
+            }
+            else if (args.CmdCompress)
+            {
+
+            }
+        }
+
+        private static Payload ParseInput(MainArgs args)
+        {
             string coverityFileName = args.OptZip;
-            string repoName = args.OptToken;
+            if (!File.Exists(coverityFileName))
+            {
+                Console.Error.WriteLine("Input file '{0}' cannot be found.", coverityFileName);
+                Environment.Exit(1);
+            }
+
+            string repoName = args.OptReponame;
+            if (!repoName.Contains("/"))
+            {
+                Console.Error.WriteLine("Invalid repository name '{0}' provided.", repoName);
+                Environment.Exit(1);
+            }
+
             string coverityToken = args.OptToken;
             string description = args.OptDescription;
             string email = args.OptEmail;
             string version = args.OptCodeversion;
-            if (!File.Exists(coverityFileName))
+            bool dryrun = args.OptDryrun;
+            var payload = new Payload
             {
-                Console.Error.WriteLine("Input file '" + coverityFileName + "' cannot be found");
-                Environment.Exit(1);
-            }
-
-            var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMinutes(20);
-            var form = new MultipartFormDataContent();
-            form.Add(new StringContent(coverityToken), "token");
-            form.Add(new StringContent(email), "email");
-
-            var fs = new FileStream(coverityFileName, FileMode.Open, FileAccess.Read);
-            var fileField = new StreamContent(fs);
-            form.Add(fileField, "file", coverityFileName);
-            form.Add(new StringContent(version), "version");
-            form.Add(new StringContent(description), "description");
-
-            var url = string.Format("https://scan.coverity.com/builds?project={0}", repoName);
-            var task = client.PostAsync(url, form);
-            try
-            {
-                task.Wait();
-            }
-            catch (AggregateException exception)
-            {
-                throw exception.InnerException;
-            }
-            Console.WriteLine(task.Result);
-            fs.Close();
+                FileName = coverityFileName,
+                RepositoryName = repoName,
+                Token = coverityToken,
+                Email = email,
+                Version = version,
+                Description = description,
+                SubmitToCoverity = !dryrun
+            };
+            return payload;
         }
 
         public static string UnQuoted(string theString)

@@ -102,7 +102,7 @@ task coverity -precondition { return $script:runCoverity } {
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
   Write-Zip -Path "cov-int" -OutputPath $coverityFileName
 
-  .src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -r $env:APPVEYOR_REPO_NAME -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
+  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -r $env:APPVEYOR_REPO_NAME -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
 }
 
 task ResolveCoverallsPath {

@@ -32,7 +32,7 @@ namespace csmacnz.CoverityPublisher
                         try
                         {
                             var response = Client.Post(url, form);
-                            if (response.StatusCode == HttpStatusCode.OK)
+                            if (response.IsSuccessStatusCode)
                             {
                                 results.Message = "Request Submitted Successfully";
                             }

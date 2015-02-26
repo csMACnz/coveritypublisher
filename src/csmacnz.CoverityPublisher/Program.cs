@@ -9,6 +9,7 @@ namespace csmacnz.CoverityPublisher
         public static void Main(string[] argv)
         {
             var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
+            PrintLogo();
             if (args.CmdPublish)
             {
                 var payload = ParseInput(args);
@@ -16,7 +17,7 @@ namespace csmacnz.CoverityPublisher
                 var results  =CoveritySubmitter.Submit(payload);
                 if (results.Successful)
                 {
-                    Console.Error.WriteLine(results.Message);
+                    Console.WriteLine(results.Message);
                 }
                 else
                 {
@@ -28,6 +29,20 @@ namespace csmacnz.CoverityPublisher
             {
 
             }
+        }
+
+        private static void PrintLogo()
+        {
+            Console.WriteLine(@"
+  _____       _     _ _     _      _____                    _ _
+ |  __ \     | |   | (_)   | |    / ____|                  (_) |
+ | |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _
+ |  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |
+ | |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |
+ |_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |
+                                                                   __/ |
+                                                                  |___/
+");
         }
 
         private static Payload ParseInput(MainArgs args)

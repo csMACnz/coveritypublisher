@@ -9,7 +9,10 @@ namespace csmacnz.CoverityPublisher
         public static void Main(string[] argv)
         {
             var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
-            PrintLogo();
+            if (!args.OptNologo)
+            {
+                PrintLogo();
+            }
             if (args.CmdPublish)
             {
                 var payload = ParseInput(args);

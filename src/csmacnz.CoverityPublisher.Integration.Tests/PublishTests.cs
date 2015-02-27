@@ -6,10 +6,12 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
 {
     public class PublishTests
     {
+        private const string ValidRepositoryName = "USER/REPO";
+
         [Fact]
         public void FileDoesntExist()
         {
-            var results = RunExe("doesntExist.zip");
+            var results = RunMinimumValidExeWithDefaultRepository("doesntExist.zip");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Input file 'doesntExist.zip' cannot be found", results.StandardError);
@@ -18,7 +20,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void FileInQuotesDoesntExist()
         {
-            var results = RunExe("\"doesntExist.zip\"");
+            var results = RunMinimumValidExeWithDefaultRepository("\"doesntExist.zip\"");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Input file 'doesntExist.zip' cannot be found.", results.StandardError);
@@ -30,7 +32,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var testfilePath = CreateTempFile("test.zip");
 
-            var results = RunExe(testfilePath, "USERREPO");
+            var results = RunMinimumValidExeWithRepository(testfilePath, "USERREPO");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Invalid repository name 'USERREPO' provided.", results.StandardError);
@@ -41,7 +43,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var testfilePath = CreateTempFile("test.zip");
 
-            var results = RunExe(testfilePath, "\"\"");
+            var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Invalid repository name '' provided.", results.StandardError);
@@ -52,7 +54,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var testfilePath = CreateTempFile("test.zip");
 
-            var results = RunExe(testfilePath, "\"   \"");
+            var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Invalid repository name '   ' provided.", results.StandardError);
@@ -63,7 +65,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var testfilePath = CreateTempFile("test.zip");
 
-            var results = RunExe(testfilePath, "\"USER/REPO\"");
+            var results = RunMinimumValidExeWithRepository(testfilePath, "\"USER/REPO\"");
 
             Assert.Equal(0, results.ExitCode);
         }
@@ -73,9 +75,36 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var testfilePath = CreateTempFile("test.zip");
 
-            var results = RunExe(testfilePath, "USER/REPO");
+            var results = RunMinimumValidExeWithRepository(testfilePath, ValidRepositoryName);
 
             Assert.Equal(0, results.ExitCode);
+        }
+
+        [Fact]
+        public void DefaultShowsLogo()
+        {
+            var results = ExecutePublish();
+
+            Assert.Equal(0, results.ExitCode);
+            Assert.Contains(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
+            Assert.Contains(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
+            Assert.Contains(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
+            Assert.Contains(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
+            Assert.Contains(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
+        }
+
+        [Fact]
+        public void NoLogoSuccess()
+        {
+            var results = ExecutePublish("--nologo");
+
+
+            Assert.Equal(0, results.ExitCode);
+            Assert.DoesNotContain(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
+            Assert.DoesNotContain(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
+            Assert.DoesNotContain(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
+            Assert.DoesNotContain(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
+            Assert.DoesNotContain(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
         }
 
         private static string CreateTempFile(string fileName)
@@ -86,9 +115,27 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             return "\"" + testfilePath + "\"";
         }
 
-        private static RunResults RunExe(string filePath, string repository = "USER/REPO")
+        private static RunResults ExecutePublish(string optionalParameters = null)
         {
-            return ExeTestRunner.RunExe(string.Format("publish -z {0} -r {1} -t FAKE_TOKEN -e a@b.com --dryrun", filePath, repository));
+            var testfilePath = CreateTempFile("test.zip");
+
+            var results = RunMinimumValidExeWithRepository(testfilePath, ValidRepositoryName, optionalParameters);
+            return results;
+        }
+
+        private static RunResults RunMinimumValidExeWithDefaultRepository(string filePath, string optionalParameters = null)
+        {
+            return RunMinimumValidExeWithRepository(filePath, ValidRepositoryName, optionalParameters);
+        }
+
+        private static RunResults RunMinimumValidExeWithRepository(string filePath, string repository, string optionalParameters = null)
+        {
+            return RunMinimumValidExe(filePath, optionalParameters: string.Format("-r {0} {1}", repository, optionalParameters));
+        }
+
+        private static RunResults RunMinimumValidExe(string filePath, string token = "FAKE_TOKEN", string email = "a@b.com", string optionalParameters = null)
+        {
+            return ExeTestRunner.RunExe(string.Format("publish -z {0} -t {1} -e {2} --dryrun {3}", filePath, token, email, optionalParameters));
         }
 
     }

@@ -12,7 +12,7 @@ namespace csmacnz.CoverityPublisher
 
 Usage:
   PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite]
-  PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun]
+  PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun] [--nologo]
   PublishCoverity --version
   PublishCoverity --help
 
@@ -28,6 +28,7 @@ Options:
  -d <desc>, --description <desc>          The optional description you want to pass to coverity.  [default: Published by PublishCoverity.exe]
  --codeVersion <version>                  The version of the application to report the coverage for. [default: 0.1.0]
  --dryrun                                 Does everything except the post to Coverity. Useful for testing.
+ --nologo                                 If this is set, will not show the logo when run.
  -h, --help                               Show this screen.
  --version                                Show version.
 
@@ -61,6 +62,7 @@ What its for:
 		public string OptDescription { get { return _args["--description"].ToString(); } }
 		public string OptCodeversion { get { return _args["--codeVersion"].ToString(); } }
 		public bool OptDryrun { get { return _args["--dryrun"].IsTrue; } }
+		public bool OptNologo { get { return _args["--nologo"].IsTrue; } }
 		public bool OptVersion { get { return _args["--version"].IsTrue; } }
 		public bool OptHelp { get { return _args["--help"].IsTrue; } }
 	

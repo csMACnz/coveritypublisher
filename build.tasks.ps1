@@ -73,32 +73,18 @@ task build {
     exec { msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file }
 }
 
-task appveyor-checkCoverity {
-  if($env:APPVEYOR_SCHEDULED_BUILD -eq "True") {
-    #download coverity
-    # Invoke-WebRequest -Uri "https://scan.coverity.com/download/cxx/win_64" -Body @{ project = "$env:APPVEYOR_REPO_NAME"; token = "$env:COVERITY_TOKEN" } -OutFile "$env:APPVEYOR_BUILD_FOLDER\coverity.zip"
-    Invoke-WebRequest -Uri "https://dl.dropboxusercontent.com/u/19134447/cov-analysis-win64-7.5.0-netonly.zip" -OutFile "$env:APPVEYOR_BUILD_FOLDER\coverity.zip"
-
-    Expand-Archive .\coverity.zip
-
-    $script:runCoverity = $true
-    $script:covbuild = (Resolve-Path ".\cov-analysis-win64-*\bin\cov-build.exe").ToString()
-  }
-}
-
 task setup-coverity-local {
-  $script:runCoverity = $true
-  $script:covbuild = "cov-build"
   $env:APPVEYOR_BUILD_FOLDER = "."
   $env:APPVEYOR_BUILD_VERSION = $script:version
   $env:APPVEYOR_REPO_NAME = "csmacnz/coveritypublisher"
-  "You should have set the COVERITY_TOKEN environment variable already"
+  "You should have set the COVERITY_TOKEN and COVERITY_EMAIL environment variables already"
+  $env:APPVEYOR_SCHEDULED_BUILD = "True"
 }
 
 task test-coverity -depends setup-coverity-local, coverity
 
-task coverity -precondition { return $script:runCoverity } {
-  & $script:covbuild --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
+task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } {
+  & cov-build --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
   Write-Zip -Path "cov-int" -OutputPath $coverityFileName
 

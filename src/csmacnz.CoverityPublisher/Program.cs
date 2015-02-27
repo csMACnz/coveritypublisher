@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 
 namespace csmacnz.CoverityPublisher
@@ -30,7 +31,20 @@ namespace csmacnz.CoverityPublisher
             }
             else if (args.CmdCompress)
             {
-
+                try
+                {
+                    ZipFile.CreateFromDirectory(
+                        args.OptDirectory,
+                        args.OptOutput,
+                        CompressionLevel.Optimal,
+                        true,
+                        new PortableFileNameEncoder());
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(ex.Message);
+                    Environment.Exit(1);
+                }
             }
         }
 

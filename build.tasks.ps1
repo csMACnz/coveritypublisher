@@ -150,4 +150,4 @@ task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
 task appveyor-build -depends RestoreNuGetPackages, build
 
-task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, appveyor-checkCoverity, coverity
+task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity

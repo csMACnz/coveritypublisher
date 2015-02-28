@@ -46,7 +46,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
 
             Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("Invalid repository name '' provided.", results.StandardError);
+            Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
 
             Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("Invalid repository name '   ' provided.", results.StandardError);
+            Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
         }
 
         [Fact]

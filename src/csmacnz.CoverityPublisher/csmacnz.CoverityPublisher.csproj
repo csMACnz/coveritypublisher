@@ -33,6 +33,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>PublishCoverity.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>csmacnz.CoverityPublisher.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DocoptNet">
       <HintPath>..\packages\docopt.net.0.6.1.6\lib\net40\DocoptNet.dll</HintPath>
@@ -84,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.usage.txt" />
+    <Content Include="PublishCoverity.ico" />
     <None Include="T4DocoptNet.tt.settings.xml" />
   </ItemGroup>
   <ItemGroup>

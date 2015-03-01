@@ -1,6 +1,6 @@
 ﻿namespace csmacnz.CoverityPublisher
 {
-    public class PublishResult
+    public class ActionResult
     {
         public bool Successful { get; set; }
         public string Message { get; set; }

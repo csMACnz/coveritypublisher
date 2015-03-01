@@ -1,6 +1,6 @@
 ﻿namespace csmacnz.CoverityPublisher
 {
-    public class Payload
+    public sealed class PublishPayload
     {
         public string FileName { get; set; }
         public string RepositoryName { get; set; }

@@ -7,7 +7,7 @@ namespace csmacnz.CoverityPublisher
 {
     public class CoveritySubmitter
     {
-        public static PublishResult Submit(Payload payload)
+        public static ActionResult Submit(PublishPayload payload)
         {
             using (var fs = new FileStream(payload.FileName, FileMode.Open, FileAccess.Read))
             {
@@ -23,7 +23,7 @@ namespace csmacnz.CoverityPublisher
 
                     var url = string.Format("https://scan.coverity.com/builds?project={0}", payload.RepositoryName);
 
-                    PublishResult results = new PublishResult
+                    ActionResult results = new ActionResult
                     {
                         Successful = true,
                     };

@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using BCLExtensions;
 
 namespace csmacnz.CoverityPublisher
 {
@@ -17,35 +18,39 @@ namespace csmacnz.CoverityPublisher
             }
             if (args.CmdPublish)
             {
-                var payload = ParseInput(args);
+                var payload = ParsePublishInput(args);
 
                 var results  =CoveritySubmitter.Submit(payload);
-                if (results.Successful)
-                {
-                    Console.WriteLine(results.Message);
-                }
-                else
-                {
-                    Console.Error.WriteLine(results.Message);
-                    Environment.Exit(1);
-                }
+                ProcessResult(results);
             }
             else if (args.CmdCompress)
             {
-                try
-                {
-                    ZipFile.CreateFromDirectory(
-                        args.OptDirectory,
-                        args.OptOutput,
-                        CompressionLevel.Optimal,
-                        true,
-                        new PortableFileNameEncoder());
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                    Environment.Exit(1);
-                }
+                var payload = ParseCompressPayload(args);
+                var results = ZipCompressor.Compress(payload);
+                ProcessResult(results);
+            }
+        }
+
+        private static CompressPayload ParseCompressPayload(MainArgs args)
+        {
+            var payload = new CompressPayload
+            {
+                Output = args.OptOutput,
+                Directory = args.OptDirectory
+            };
+            return payload;
+        }
+
+        private static void ProcessResult(ActionResult results)
+        {
+            if (results.Successful)
+            {
+                Console.WriteLine(results.Message);
+            }
+            else
+            {
+                Console.Error.WriteLine(results.Message);
+                Environment.Exit(1);
             }
         }
 
@@ -63,7 +68,7 @@ namespace csmacnz.CoverityPublisher
 ");
         }
 
-        private static Payload ParseInput(MainArgs args)
+        private static PublishPayload ParsePublishInput(MainArgs args)
         {
             string coverityFileName = args.OptZip;
             if (!File.Exists(coverityFileName))
@@ -72,11 +77,11 @@ namespace csmacnz.CoverityPublisher
                 Environment.Exit(1);
             }
 
-            string repoName = UnQuoted(args.OptReponame);
-            if (string.IsNullOrWhiteSpace(repoName))
+            string repoName = Unquoted(args.OptReponame);
+            if (repoName.IsNullOrWhitespace())
             {
-                repoName = UnQuoted(Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME"));
-                if (string.IsNullOrWhiteSpace(repoName))
+                repoName = Unquoted(Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME"));
+                if (repoName.IsNullOrWhitespace())
                 {
                     Console.Error.WriteLine("No repository name provided, and could not be resolved.");
                     Environment.Exit(1);
@@ -102,7 +107,7 @@ namespace csmacnz.CoverityPublisher
             }
             string version = args.OptCodeversion;
             bool dryrun = args.OptDryrun;
-            var payload = new Payload
+            var payload = new PublishPayload
             {
                 FileName = coverityFileName,
                 RepositoryName = repoName,
@@ -115,9 +120,9 @@ namespace csmacnz.CoverityPublisher
             return payload;
         }
 
-        public static string UnQuoted(string theString)
+        public static string Unquoted(string theString)
         {
-            if (theString == null) return null;
+            if (theString.IsNull()) return null;
             if(theString.Length<2)return theString;
 
             const char singleQuote = '\'';

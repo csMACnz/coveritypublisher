@@ -9,7 +9,7 @@ namespace csmacnz.CoverityPublisher.Unit.Tests
         {
             var theString = "\"Test\"";
 
-            var result = Program.UnQuoted(theString);
+            var result = Program.Unquoted(theString);
 
             Assert.Equal("Test", result);
         }
@@ -19,7 +19,7 @@ namespace csmacnz.CoverityPublisher.Unit.Tests
         {
             var theString = "\'Test\'";
 
-            var result = Program.UnQuoted(theString);
+            var result = Program.Unquoted(theString);
 
             Assert.Equal("Test", result);
         }
@@ -30,7 +30,7 @@ namespace csmacnz.CoverityPublisher.Unit.Tests
         {
             var theString = "Test";
 
-            var result = Program.UnQuoted(theString);
+            var result = Program.Unquoted(theString);
 
             Assert.Equal("Test", result);
         }

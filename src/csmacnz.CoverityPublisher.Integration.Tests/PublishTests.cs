@@ -12,7 +12,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void FileDoesntExist()
         {
-            var results = RunMinimumValidExeWithDefaultRepository("doesntExist.zip");
+            var results = RunMinimumValidExeWithRepository("doesntExist.zip");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Input file 'doesntExist.zip' cannot be found", results.StandardError);
@@ -21,99 +21,137 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void FileInQuotesDoesntExist()
         {
-            var results = RunMinimumValidExeWithDefaultRepository("\"doesntExist.zip\"");
+            var results = RunMinimumValidExeWithRepository("\"doesntExist.zip\"");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Input file 'doesntExist.zip' cannot be found.", results.StandardError);
         }
 
-
-        [Fact]
-        public void NameWithoutSlashFails()
+        public class RepoNameTests
         {
-            var testfilePath = CreateTempFile("test.zip");
+            [Fact]
+            public void NameWithoutSlashFails()
+            {
+                var testfilePath = CreateTempZipFile();
 
-            var results = RunMinimumValidExeWithRepository(testfilePath, "USERREPO");
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "USERREPO");
 
-            Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("Invalid repository name 'USERREPO' provided.", results.StandardError);
+                Assert.NotEqual(0, results.ExitCode);
+                Assert.Contains("Invalid repository name 'USERREPO' provided.", results.StandardError);
+            }
+
+            [Fact]
+            public void RepoNameArgNotProvidedAppveyorRepoNameSetSucceeds()
+            {
+                var testfilePath = CreateTempZipFile();
+                SetAppveyorRepoName("Test/Repo");
+
+                var results = RunMinimumValidExe(testfilePath);
+
+                Assert.Equal(0, results.ExitCode);
+            }
+
+            [Fact]
+            public void EmptyStringNameFails()
+            {
+                var testfilePath = CreateTempZipFile();
+                ClearAppveyorRepoName();
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "\"\"");
+
+                Assert.NotEqual(0, results.ExitCode);
+                Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
+            }
+
+            [Fact]
+            public void EmptyStringNameAppveyorRepoNameSetSucceeds()
+            {
+                var testfilePath = CreateTempZipFile();
+                SetAppveyorRepoName("Test/Repo");
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "\"\"");
+
+                Assert.Equal(0, results.ExitCode);
+            }
+
+            [Fact]
+            public void WhitespaceStringNameFails()
+            {
+                var testfilePath = CreateTempZipFile();
+                ClearAppveyorRepoName();
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "\"   \"");
+
+                Assert.NotEqual(0, results.ExitCode);
+                Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
+            }
+
+            [Fact]
+            public void WhitespaceStringNameAppveyorRepoNameSetSucceeds()
+            {
+                var testfilePath = CreateTempZipFile();
+                SetAppveyorRepoName("Test/Repo");
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "\"   \"");
+
+                Assert.Equal(0, results.ExitCode);
+            }
+
+            [Fact]
+            public void QuotedRepoNameSuccess()
+            {
+                var testfilePath = CreateTempZipFile();
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "\"USER/REPO\"");
+
+                Assert.Equal(0, results.ExitCode);
+            }
+
+            [Fact]
+            public void RepoNameSuccess()
+            {
+                var testfilePath = CreateTempZipFile();
+
+                var results = RunMinimumValidExeWithRepository(testfilePath, repository: ValidRepositoryName);
+
+                Assert.Equal(0, results.ExitCode);
+            }
         }
 
-        [Fact]
-        public void RepoNameArgNotProvidedAppveyorRepoNameSetSucceeds()
+        public class EmailTests
         {
-            var testfilePath = CreateTempFile("test.zip");
-            SetAppveyorRepoName("Test/Repo");
+            [Fact]
+            public void EmailSuccess()
+            {
+                var testfilePath = CreateTempZipFile();
 
-            var results = RunMinimumValidExe(testfilePath);
+                var results = RunMinimumValidExeWithRepository(testfilePath, email:"csmacnz@csmac.co.nz");
 
-            Assert.Equal(0, results.ExitCode);
-        }
+                Assert.Equal(0, results.ExitCode);
+            }
+            
+            [Fact]
+            public void NonEmailFails()
+            {
+                var testfilePath = CreateTempZipFile();
 
-        [Fact]
-        public void EmptyStringNameFails()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-            ClearAppveyorRepoName();
+                var results = RunMinimumValidExeWithRepository(testfilePath, email: "notanemail");
 
-            var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
+                Assert.NotEqual(0, results.ExitCode);
+                Assert.Contains("Invalid email 'notanemail' provided.", results.StandardError);
+            }
 
-            Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
-        }
 
-        [Fact]
-        public void EmptyStringNameAppveyorRepoNameSetSucceeds()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-            SetAppveyorRepoName("Test/Repo");
+            [Fact]
+            public void EmailWithTwoAtSymbolsFails()
+            {
+                var testfilePath = CreateTempZipFile();
 
-            var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
+                var results = RunMinimumValidExeWithRepository(testfilePath, email: "not@an@email");
 
-            Assert.Equal(0, results.ExitCode);
-        }
-
-        [Fact]
-        public void WhitespaceStringNameFails()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-            ClearAppveyorRepoName();
-
-            var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
-
-            Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
-        }
-
-        [Fact]
-        public void WhitespaceStringNameAppveyorRepoNameSetSucceeds()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-            SetAppveyorRepoName("Test/Repo");
-
-            var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
-
-            Assert.Equal(0, results.ExitCode);
-        }
-
-        [Fact]
-        public void QuotedRepoNameSuccess()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-
-            var results = RunMinimumValidExeWithRepository(testfilePath, "\"USER/REPO\"");
-
-            Assert.Equal(0, results.ExitCode);
-        }
-
-        [Fact]
-        public void RepoNameSuccess()
-        {
-            var testfilePath = CreateTempFile("test.zip");
-
-            var results = RunMinimumValidExeWithRepository(testfilePath, ValidRepositoryName);
-
-            Assert.Equal(0, results.ExitCode);
+                Assert.NotEqual(0, results.ExitCode);
+                Assert.Contains("Invalid email 'not@an@email' provided.", results.StandardError);
+            }
         }
 
         [Fact]
@@ -143,30 +181,23 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             Assert.DoesNotContain(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
         }
 
-        private static string CreateTempFile(string fileName)
+        private static string CreateTempZipFile()
         {
-            var testfilePath = TestFolders.GetTempFilePath(fileName);
-            var file = File.Create(testfilePath);
-            file.Close();
+            var testfilePath = TestFolders.GetTempFile("zip");
             return "\"" + testfilePath + "\"";
         }
 
         private static RunResults ExecutePublish(string optionalParameters = null)
         {
-            var testfilePath = CreateTempFile("test.zip");
+            var testfilePath = CreateTempZipFile();
 
-            var results = RunMinimumValidExeWithRepository(testfilePath, ValidRepositoryName, optionalParameters);
+            var results = RunMinimumValidExeWithRepository(testfilePath, repository: ValidRepositoryName, optionalParameters: optionalParameters);
             return results;
         }
 
-        private static RunResults RunMinimumValidExeWithDefaultRepository(string filePath, string optionalParameters = null)
+        private static RunResults RunMinimumValidExeWithRepository(string filePath, string token = "FAKE_TOKEN", string email = "a@b.com", string repository = ValidRepositoryName, string optionalParameters = null)
         {
-            return RunMinimumValidExeWithRepository(filePath, ValidRepositoryName, optionalParameters);
-        }
-
-        private static RunResults RunMinimumValidExeWithRepository(string filePath, string repository, string optionalParameters = null)
-        {
-            return RunMinimumValidExe(filePath, optionalParameters: string.Format("-r {0} {1}", repository, optionalParameters));
+            return RunMinimumValidExe(filePath, token, email, string.Format("-r {0} {1}", repository, optionalParameters));
         }
 
         private static RunResults RunMinimumValidExe(string filePath, string token = "FAKE_TOKEN", string email = "a@b.com", string optionalParameters = null)

@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace csmacnz.CoverityPublisher
 {
@@ -94,6 +95,11 @@ namespace csmacnz.CoverityPublisher
             string coverityToken = args.OptToken;
             string description = args.OptDescription;
             string email = args.OptEmail;
+            if (!Regex.IsMatch(email, "^[^@]+@[^@]+$"))
+            {
+                Console.Error.WriteLine("Invalid email '{0}' provided.", email);
+                Environment.Exit(1);
+            }
             string version = args.OptCodeversion;
             bool dryrun = args.OptDryrun;
             var payload = new Payload

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using csmacnz.CoverityPublisher.Integration.Tests.TestFramework;
 using Xunit;
 
@@ -39,9 +40,21 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         }
 
         [Fact]
+        public void RepoNameArgNotProvidedAppveyorRepoNameSetSucceeds()
+        {
+            var testfilePath = CreateTempFile("test.zip");
+            SetAppveyorRepoName("Test/Repo");
+
+            var results = RunMinimumValidExe(testfilePath);
+
+            Assert.Equal(0, results.ExitCode);
+        }
+
+        [Fact]
         public void EmptyStringNameFails()
         {
             var testfilePath = CreateTempFile("test.zip");
+            ClearAppveyorRepoName();
 
             var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
 
@@ -50,14 +63,37 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         }
 
         [Fact]
+        public void EmptyStringNameAppveyorRepoNameSetSucceeds()
+        {
+            var testfilePath = CreateTempFile("test.zip");
+            SetAppveyorRepoName("Test/Repo");
+
+            var results = RunMinimumValidExeWithRepository(testfilePath, "\"\"");
+
+            Assert.Equal(0, results.ExitCode);
+        }
+
+        [Fact]
         public void WhitespaceStringNameFails()
         {
             var testfilePath = CreateTempFile("test.zip");
+            ClearAppveyorRepoName();
 
             var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("No repository name provided, and could not be resolved.", results.StandardError);
+        }
+
+        [Fact]
+        public void WhitespaceStringNameAppveyorRepoNameSetSucceeds()
+        {
+            var testfilePath = CreateTempFile("test.zip");
+            SetAppveyorRepoName("Test/Repo");
+
+            var results = RunMinimumValidExeWithRepository(testfilePath, "\"   \"");
+
+            Assert.Equal(0, results.ExitCode);
         }
 
         [Fact]
@@ -138,5 +174,14 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             return ExeTestRunner.RunExe(string.Format("publish -z {0} -t {1} -e {2} --dryrun {3}", filePath, token, email, optionalParameters));
         }
 
+        private static void ClearAppveyorRepoName()
+        {
+            SetAppveyorRepoName(null);
+        }
+
+        private static void SetAppveyorRepoName(string name)
+        {
+            Environment.SetEnvironmentVariable("APPVEYOR_REPO_NAME", name, EnvironmentVariableTarget.Process);
+        }
     }
 }

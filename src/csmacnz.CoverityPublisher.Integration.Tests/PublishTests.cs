@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using csmacnz.CoverityPublisher.Integration.Tests.TestFramework;
 using Xunit;
 

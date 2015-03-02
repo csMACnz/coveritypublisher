@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BCLExtensions;
@@ -33,10 +32,17 @@ namespace csmacnz.CoverityPublisher
 
         private static CompressPayload ParseCompressPayload(MainArgs args)
         {
+            var directory = args.OptDirectory;
+            if (!Directory.Exists(directory))
+            {
+                Console.Error.WriteLine("Input folder '{0}' cannot be found.", directory);
+                Environment.Exit(1);
+                
+            }
             var payload = new CompressPayload
             {
                 Output = args.OptOutput,
-                Directory = args.OptDirectory
+                Directory = directory
             };
             return payload;
         }

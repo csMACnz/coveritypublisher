@@ -126,7 +126,7 @@ task archive-only {
 
     mkdir $archive_dir
 
-    cp "$build_output_dir\PublishCoverity.exe" "$archive_dir"
+    cp "$build_output_dir\*.*" "$archive_dir"
 
     Write-Zip -Path "$archive_dir\*" -OutputPath $archive_filename
 }
@@ -138,7 +138,7 @@ task pack-only {
     mkdir $nuget_pack_dir
     cp "$nuspec_filename" "$nuget_pack_dir"
 
-    cp "$build_output_dir\PublishCoverity.exe" "$nuget_pack_dir"
+    cp "$build_output_dir\*.*" "$nuget_pack_dir"
 
     $Spec = [xml](get-content "$nuget_pack_dir\$nuspec_filename")
     $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)

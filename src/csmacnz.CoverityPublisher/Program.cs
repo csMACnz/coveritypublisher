@@ -39,9 +39,22 @@ namespace csmacnz.CoverityPublisher
                 Environment.Exit(1);
                 
             }
+            var output = args.OptOutput;
+            if (File.Exists(output))
+            {
+                if (args.OptOverwrite)
+                {
+                    Console.WriteLine("Overwritting file '{0}' with new compression data.", output);
+                }
+                else
+                {
+                    Console.Error.WriteLine("Output file '{0}' already exists.", output);
+                    Environment.Exit(1);
+                }
+            }
             var payload = new CompressPayload
             {
-                Output = args.OptOutput,
+                Output = output,
                 Directory = directory
             };
             return payload;

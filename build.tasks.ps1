@@ -73,60 +73,25 @@ task build {
     exec { msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file }
 }
 
-task appveyor-checkCoverity {
-  if($env:APPVEYOR_SCHEDULED_BUILD -eq "True") {
-    #download coverity
-    # Invoke-WebRequest -Uri "https://scan.coverity.com/download/cxx/win_64" -Body @{ project = "$env:APPVEYOR_REPO_NAME"; token = "$env:COVERITY_TOKEN" } -OutFile "$env:APPVEYOR_BUILD_FOLDER\coverity.zip"
-    Invoke-WebRequest -Uri "https://dl.dropboxusercontent.com/u/19134447/cov-analysis-win64-7.5.0-netonly.zip" -OutFile "$env:APPVEYOR_BUILD_FOLDER\coverity.zip"
-
-    Expand-Archive .\coverity.zip
-
-    $script:runCoverity = $true
-    $script:covbuild = (Resolve-Path ".\cov-analysis-win64-*\bin\cov-build.exe").ToString()
-  }
-}
-
 task setup-coverity-local {
-  $script:runCoverity = $true
-  $script:covbuild = "cov-build"
   $env:APPVEYOR_BUILD_FOLDER = "."
   $env:APPVEYOR_BUILD_VERSION = $script:version
   $env:APPVEYOR_REPO_NAME = "csmacnz/coveritypublisher"
-  "You should have set the COVERITY_TOKEN environment variable already"
+  "You should have set the COVERITY_TOKEN and COVERITY_EMAIL environment variables already"
+  $env:APPVEYOR_SCHEDULED_BUILD = "True"
 }
 
 task test-coverity -depends setup-coverity-local, coverity
 
-task coverity -precondition { return $script:runCoverity }{
-  & $script:covbuild --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
-  $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
-  Write-Zip -Path "cov-int" -OutputPath $coverityFileName
+task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } {
   
-  #TODO an app for this:
-  Add-Type -AssemblyName "System.Net.Http"
-  $client = New-Object Net.Http.HttpClient
-  $client.Timeout = [TimeSpan]::FromMinutes(20)
-  $form = New-Object Net.Http.MultipartFormDataContent
-  [Net.Http.HttpContent]$formField = New-Object Net.Http.StringContent($env:COVERITY_TOKEN)
-  $form.Add($formField, "token")
-  $formField = New-Object Net.Http.StringContent($env:COVERITY_EMAIL)
-  $form.Add($formField, "email")
-  $fs = New-Object IO.FileStream("$env:APPVEYOR_BUILD_FOLDER\$coverityFileName", [IO.FileMode]::Open, [IO.FileAccess]::Read)
-  $formField = New-Object Net.Http.StreamContent($fs)
-  $form.Add($formField, "file", "$coverityFileName")
-  $formField = New-Object Net.Http.StringContent($script:nugetVersion)
-  $form.Add($formField, "version")
-  $formField = New-Object Net.Http.StringContent("AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION).")
-  $form.Add($formField, "description")
-  $url = "https://scan.coverity.com/builds?project=$env:APPVEYOR_REPO_NAME"
-  $task = $client.PostAsync($url, $form)
-  try {
-    $task.Wait()  # throws AggregateException on time-out
-  } catch [AggregateException] {
-    throw $_.Exception.InnerException
-  }
-  $task.Result
-  $fs.Close()
+  & cov-build --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
+  
+  $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
+  
+  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity compress -o $coverityFileName
+
+  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
 }
 
 task ResolveCoverallsPath {
@@ -147,11 +112,11 @@ task coverage-only {
 }
 
 task test-coveralls -depends coverage, ResolveCoverallsPath {
-    exec { & $script:coveralls --dynamiccodecoverage -i coverage.coveragexml --dryrun -o coverallsTestOutput.json --repoToken "NOTAREALTOKEN" }
+    exec { & $script:coveralls --dynamiccodecoverage -i coverage.coveragexml --dryrun -o coverallsTestOutput.json --repoToken "NOTAREALTOKEN" --useRelativePaths }
 }
 
 task coveralls -depends ResolveCoverallsPath {
-    exec { & $script:coveralls --dynamiccodecoverage -i coverage.coveragexml --repoToken $env:COVERALLS_REPO_TOKEN --commitId $env:APPVEYOR_REPO_COMMIT --commitBranch $env:APPVEYOR_REPO_BRANCH --commitAuthor $env:APPVEYOR_REPO_COMMIT_AUTHOR --commitEmail $env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL --commitMessage $env:APPVEYOR_REPO_COMMIT_MESSAGE --jobId $env:APPVEYOR_JOB_ID }
+    exec { & $script:coveralls --dynamiccodecoverage -i coverage.coveragexml --repoToken $env:COVERALLS_REPO_TOKEN --useRelativePaths --commitId $env:APPVEYOR_REPO_COMMIT --commitBranch $env:APPVEYOR_REPO_BRANCH --commitAuthor $env:APPVEYOR_REPO_COMMIT_AUTHOR --commitEmail $env:APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL --commitMessage $env:APPVEYOR_REPO_COMMIT_MESSAGE --jobId $env:APPVEYOR_JOB_ID }
 }
 
 task archive -depends build, archive-only
@@ -161,7 +126,7 @@ task archive-only {
 
     mkdir $archive_dir
 
-    cp "$build_output_dir\PublishCoverity.exe" "$archive_dir"
+    cp "$build_output_dir\*.*" "$archive_dir"
 
     Write-Zip -Path "$archive_dir\*" -OutputPath $archive_filename
 }
@@ -173,8 +138,7 @@ task pack-only {
     mkdir $nuget_pack_dir
     cp "$nuspec_filename" "$nuget_pack_dir"
 
-    mkdir "$nuget_pack_dir\lib"
-    cp "$build_output_dir\PublishCoverity.exe" "$nuget_pack_dir\lib"
+    cp "$build_output_dir\*.*" "$nuget_pack_dir"
 
     $Spec = [xml](get-content "$nuget_pack_dir\$nuspec_filename")
     $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
@@ -189,4 +153,4 @@ task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
 task appveyor-build -depends RestoreNuGetPackages, build
 
-task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, appveyor-checkCoverity, coverity
+task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity

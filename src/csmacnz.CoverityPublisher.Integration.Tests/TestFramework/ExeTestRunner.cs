@@ -32,7 +32,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests.TestFramework
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 StandardOutputEncoding = Encoding.UTF8,
-                StandardErrorEncoding = Encoding.UTF8
+                StandardErrorEncoding = Encoding.UTF8,
             };
             process.StartInfo = startInfo;
 

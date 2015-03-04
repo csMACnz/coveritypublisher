@@ -23,24 +23,6 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         }
 
         [Fact]
-        public void FileDoesntExist()
-        {
-            var results = ExeTestRunner.RunExe("-z doesntExist.zip -r USER/REPO -t FAKE_TOKEN -e a@b.com");
-
-            Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("Input file 'doesntExist.zip' cannot be found", results.StandardError);
-        }
-
-        [Fact]
-        public void FileInQuotesDoesntExist()
-        {
-            var results = ExeTestRunner.RunExe("-z \"doesntExist.zip\" -r USER/REPO -t FAKE_TOKEN -e a@b.com");
-
-            Assert.NotEqual(0, results.ExitCode);
-            Assert.Contains("Input file 'doesntExist.zip' cannot be found", results.StandardError);
-        }
-
-        [Fact]
         public void Version()
         {
             var results = ExeTestRunner.RunExe("--version");

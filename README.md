@@ -1,6 +1,8 @@
 Coverity Publisher
 ==================
 
+<img align="right" width="256px" height="256px" src="http://img.csmac.nz/PublishCoverity-256.svg">
+
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://csmacnz.mit-license.org)
 [![NuGet](https://img.shields.io/nuget/v/PublishCoverity.svg)](https://www.nuget.org/packages/PublishCoverity)
 [![NuGet](https://img.shields.io/nuget/dt/PublishCoverity.svg)](https://www.nuget.org/packages/PublishCoverity)
@@ -25,6 +27,8 @@ Usage
 
 After you have created your zip file, simply execute the following:
 
-    PublishCoverity -z coverity.zip -r USER/REPO -t TOKEN -e test@example.com -d "My cool app for X" --codeVersion "1.2.3-alpha"
+    PublishCoverity compress -o coverity.zip -i cov-int
+
+    PublishCoverity publish -z coverity.zip -r USER/REPO -t TOKEN -e test@example.com -d "My cool app for X" --codeVersion "1.2.3-alpha"
 
 Note you don't want to embed your token inside your build files, use your build servers secure variable mechanism instead.

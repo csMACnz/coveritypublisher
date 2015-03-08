@@ -182,7 +182,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
 
         private static string CreateTempZipFile()
         {
-            var testfilePath = TestFolders.GetTempFile("zip");
+            var testfilePath = TestFolders.CreateTempFile("zip");
             return "\"" + testfilePath + "\"";
         }
 

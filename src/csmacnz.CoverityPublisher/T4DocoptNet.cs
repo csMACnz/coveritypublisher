@@ -11,7 +11,7 @@ namespace csmacnz.CoverityPublisher
         public const string USAGE = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite]
+  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--dryrun]
   PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun] [--nologo]
   PublishCoverity --version
   PublishCoverity --help
@@ -54,6 +54,7 @@ What its for:
 		public string OptOutput { get { return _args["--output"].ToString(); } }
 		public string OptDirectory { get { return _args["--directory"].ToString(); } }
 		public bool OptOverwrite { get { return _args["--overwrite"].IsTrue; } }
+		public bool OptDryrun { get { return _args["--dryrun"].IsTrue; } }
 		public bool CmdPublish { get { return _args["publish"].IsTrue; } }
 		public string OptToken { get { return _args["--token"].ToString(); } }
 		public string OptEmail { get { return _args["--email"].ToString(); } }
@@ -61,7 +62,6 @@ What its for:
 		public string OptZip { get { return _args["--zip"].ToString(); } }
 		public string OptDescription { get { return _args["--description"].ToString(); } }
 		public string OptCodeversion { get { return _args["--codeVersion"].ToString(); } }
-		public bool OptDryrun { get { return _args["--dryrun"].IsTrue; } }
 		public bool OptNologo { get { return _args["--nologo"].IsTrue; } }
 		public bool OptVersion { get { return _args["--version"].IsTrue; } }
 		public bool OptHelp { get { return _args["--help"].IsTrue; } }

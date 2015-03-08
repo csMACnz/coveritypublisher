@@ -7,22 +7,25 @@ namespace csmacnz.CoverityPublisher
     {
         public static ActionResult Compress(CompressPayload payload)
         {
-            try
+            if (payload.ProduceZipFile)
             {
-                ZipFile.CreateFromDirectory(
-                    payload.Directory,
-                    payload.Output,
-                    CompressionLevel.Optimal,
-                    true,
-                    new PortableFileNameEncoder());
-            }
-            catch (Exception ex)
-            {
-                return new ActionResult
+                try
                 {
-                    Successful = false,
-                    Message = ex.Message
-                };
+                    ZipFile.CreateFromDirectory(
+                        payload.Directory,
+                        payload.Output,
+                        CompressionLevel.Optimal,
+                        true,
+                        new PortableFileNameEncoder());
+                }
+                catch (Exception ex)
+                {
+                    return new ActionResult
+                    {
+                        Successful = false,
+                        Message = ex.Message
+                    };
+                }
             }
             return new ActionResult
             {

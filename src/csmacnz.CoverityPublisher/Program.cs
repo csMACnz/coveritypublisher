@@ -55,7 +55,8 @@ namespace csmacnz.CoverityPublisher
             var payload = new CompressPayload
             {
                 Output = output,
-                Directory = directory
+                Directory = directory,
+                ProduceZipFile = !args.OptDryrun
             };
             return payload;
         }

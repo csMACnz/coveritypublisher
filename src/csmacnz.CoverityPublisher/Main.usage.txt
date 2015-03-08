@@ -1,7 +1,7 @@
 ﻿PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite]
+  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--dryrun]
   PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun] [--nologo]
   PublishCoverity --version
   PublishCoverity --help

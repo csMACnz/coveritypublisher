@@ -54,20 +54,57 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var existingZip = TestFolders.CreateTempFile("zip");
             var compressionFolder = TestFolders.OutputFolder;
-            var results = RunExe(existingZip, compressionFolder);
+            var results = RunExe(existingZip, compressionFolder, "--overwrite");
 
-            Assert.NotEqual(0, results.ExitCode);
+            Assert.Equal(0, results.ExitCode);
             Assert.Contains("Output file '" + existingZip + "' already exists.", results.StandardError);
+            Assert.True(File.Exists(existingZip));
         }
 
-        private static RunResults RunExe(string output, string input)
+
+        [Fact]
+        public void DefaultShowsLogo()
         {
-            return ExeTestRunner.RunExe(string.Format("compress -o {0} -i {1}", output, input));
+            var results = ExecuteCompress();
+
+            Assert.Equal(0, results.ExitCode);
+            Assert.Contains(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
+            Assert.Contains(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
+            Assert.Contains(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
+            Assert.Contains(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
+            Assert.Contains(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
         }
 
-        private static RunResults DryRunExe(string output, string input)
+        [Fact]
+        public void NoLogoSuccess()
         {
-            return ExeTestRunner.RunExe(string.Format("compress -o {0} -i {1} --dryrun", output, input));
+            var results = ExecuteCompress("--nologo");
+
+
+            Assert.Equal(0, results.ExitCode);
+            Assert.DoesNotContain(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
+            Assert.DoesNotContain(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
+            Assert.DoesNotContain(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
+            Assert.DoesNotContain(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
+            Assert.DoesNotContain(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
+        }
+
+        private RunResults ExecuteCompress(string options = "")
+        {
+            var compressionFolder = TestFolders.OutputFolder;
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var results = DryRunExe(fileNameToCreate, compressionFolder, options);
+            return results;
+        }
+
+        private static RunResults RunExe(string output, string input, string options = "")
+        {
+            return ExeTestRunner.RunExe(string.Format("compress -o {0} -i {1} {2}", output, input, options));
+        }
+
+        private static RunResults DryRunExe(string output, string input, string options = "")
+        {
+            return ExeTestRunner.RunExe(string.Format("compress -o {0} -i {1} --dryrun {2}", output, input, options));
         }
     }
 }

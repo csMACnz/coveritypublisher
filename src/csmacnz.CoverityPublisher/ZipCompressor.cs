@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.IO.Compression;
 
 namespace csmacnz.CoverityPublisher
@@ -11,6 +12,10 @@ namespace csmacnz.CoverityPublisher
             {
                 try
                 {
+                    if (File.Exists(payload.Output))
+                    {
+                        File.Delete(payload.Output);
+                    }
                     ZipFile.CreateFromDirectory(
                         payload.Directory,
                         payload.Output,
@@ -23,7 +28,7 @@ namespace csmacnz.CoverityPublisher
                     return new ActionResult
                     {
                         Successful = false,
-                        Message = ex.Message
+                        Message = "Compression Error: " + ex.Message
                     };
                 }
             }

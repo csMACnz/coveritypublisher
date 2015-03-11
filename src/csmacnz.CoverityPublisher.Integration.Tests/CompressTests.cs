@@ -57,7 +57,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             var results = RunExe(existingZip, compressionFolder, "--overwrite");
 
             Assert.Equal(0, results.ExitCode);
-            Assert.Contains("Output file '" + existingZip + "' already exists.", results.StandardError);
+            Assert.Contains("Overwritting file '" + existingZip + "' with new compression data.", results.StandardOutput);
             Assert.True(File.Exists(existingZip));
         }
 

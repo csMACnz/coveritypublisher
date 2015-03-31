@@ -29,17 +29,6 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         public class RepoNameTests
         {
             [Fact]
-            public void NameWithoutSlashFails()
-            {
-                var testfilePath = CreateTempZipFile();
-
-                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "USERREPO");
-
-                Assert.NotEqual(0, results.ExitCode);
-                Assert.Contains("Invalid repository name 'USERREPO' provided.", results.StandardError);
-            }
-
-            [Fact]
             public void RepoNameArgNotProvidedAppveyorRepoNameSetSucceeds()
             {
                 var testfilePath = CreateTempZipFile();

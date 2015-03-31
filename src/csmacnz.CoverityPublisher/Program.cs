@@ -111,12 +111,7 @@ namespace csmacnz.CoverityPublisher
                     Console.WriteLine("Resolved repository name '{0}' from $env:APPVEYOR_REPO_NAME", repoName);
                 }
             }
-            if (!repoName.Contains("/"))
-            {
-                Console.Error.WriteLine("Invalid repository name '{0}' provided.", repoName);
-                Environment.Exit(1);
-            }
-
+            
             string coverityToken = args.OptToken;
             string description = args.OptDescription;
             string email = args.OptEmail;

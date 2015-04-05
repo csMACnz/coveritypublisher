@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace csmacnz.CoverityPublisher.Integration.Tests.TestFramework
 {
@@ -46,9 +45,15 @@ namespace csmacnz.CoverityPublisher.Integration.Tests.TestFramework
 
         public static string DefineTempFile(string fileName)
         {
+            var dirInfo = CreateTempFolder();
+            return Path.GetFullPath(Path.Combine(dirInfo, fileName));
+        }
+
+        public static string CreateTempFolder()
+        {
             var randomFolderName = Path.GetRandomFileName();
             var dirInfo = Directory.CreateDirectory(Path.Combine(TempFolder, randomFolderName));
-            return Path.GetFullPath(Path.Combine(dirInfo.FullName, fileName));
+            return dirInfo.FullName;
         }
 
         public static string CreateTempFile(string extension)

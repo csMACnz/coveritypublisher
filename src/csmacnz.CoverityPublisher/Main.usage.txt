@@ -1,7 +1,7 @@
 ﻿PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--dryrun] [--nologo]
+  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--abortOnFailures] [--dryrun] [--nologo]
   PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun] [--nologo]
   PublishCoverity --version
   PublishCoverity --help
@@ -11,6 +11,7 @@ Options:
  -i <folder>, --directory <folder>        The folder to zip up for coverity. [default: cov-int]
  -o <file>, --output <file>               The location to save the zip file to. [default: coverity.zip]
  --overwrite                              If provided, will automatically overwrite the output file location.
+ --abortOnFailures                        If Coverity Scan has reported any errors, abort the compression.
  -z <file>, --zip <file>                  The zip file to upload. [default: coverity.zip]
  -r <name>, --repoName <name>             Your repository name in the form of USER/REPO. If missing, will attempt to resolve using Environment variables. [default: ] 
  -e <email>, --email <name>               The email address to notify of the scan.

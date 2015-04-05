@@ -9,7 +9,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void ValidInputSuccessful()
         {
-            var compressionFolder = TestFolders.OutputFolder;
+            var compressionFolder = CreateValidCompressionFolder();
             var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
             var results = RunExe(fileNameToCreate, compressionFolder);
 
@@ -20,7 +20,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void ValidInputDryRunSuccessfulWithoutFile()
         {
-            var compressionFolder = TestFolders.OutputFolder;
+            var compressionFolder = CreateValidCompressionFolder();
             var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
             var results = DryRunExe(fileNameToCreate, compressionFolder);
 
@@ -31,36 +31,77 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         [Fact]
         public void FolderDoesntExistErrors()
         {
-            var results = RunExe("FileNameToCreate.zip", "doesntExistFolder");
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var results = RunExe(fileNameToCreate, "doesntExistFolder");
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Input folder 'doesntExistFolder' cannot be found.", results.StandardError);
         }
 
         [Fact]
+        public void InputFolderExistsWithoutBuildMetricsErrors()
+        {
+            var compressionFolder = TestFolders.CreateTempFolder();
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var results = RunExe(fileNameToCreate, compressionFolder);
+
+            Assert.NotEqual(0, results.ExitCode);
+            Assert.Contains("Input folder '" + compressionFolder + "' is not recognised as Coverity Scan results.", results.StandardError);
+        }
+
+        [Fact]
+        public void InputFolderExistsWithFailuresWithoutAbortSuccessful()
+        {
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var compressionFolder = CreateValidCompressionFolderWithFailures();
+            var results = RunExe(fileNameToCreate, compressionFolder);
+
+            Assert.Equal(0, results.ExitCode);
+        }
+
+        [Fact]
+        public void InputFolderExistsWithFailuresWithAbortOnFailuresErrors()
+        {
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var compressionFolder = CreateValidCompressionFolderWithFailures();
+            var results = RunExe(fileNameToCreate, compressionFolder, "--abortOnFailures");
+
+            Assert.NotEqual(0, results.ExitCode);
+            Assert.Contains("Input folder '" + compressionFolder + "' has recorded failures.", results.StandardError);
+        }
+
+        [Fact]
+        public void InputFolderExistsWithoutFailuresWithAbortOnFailuresSuccessful()
+        {
+            var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
+            var compressionFolder = CreateValidCompressionFolder();
+            var results = RunExe(fileNameToCreate, compressionFolder, "--abortOnFailures");
+
+            Assert.Equal(0, results.ExitCode);
+        }
+
+        [Fact]
         public void FileExistsWithoutOverwriteErrors()
         {
             var existingZip = TestFolders.CreateTempFile("zip");
-            var compressionFolder = TestFolders.OutputFolder;
+            var compressionFolder = CreateValidCompressionFolder();
             var results = RunExe(existingZip, compressionFolder);
 
             Assert.NotEqual(0, results.ExitCode);
             Assert.Contains("Output file '" + existingZip + "' already exists.", results.StandardError);
         }
 
-
         [Fact]
         public void FileExistsWithOverwriteErrors()
         {
             var existingZip = TestFolders.CreateTempFile("zip");
-            var compressionFolder = TestFolders.OutputFolder;
+            var compressionFolder = CreateValidCompressionFolder();
             var results = RunExe(existingZip, compressionFolder, "--overwrite");
 
             Assert.Equal(0, results.ExitCode);
             Assert.Contains("Overwritting file '" + existingZip + "' with new compression data.", results.StandardOutput);
             Assert.True(File.Exists(existingZip));
         }
-
 
         [Fact]
         public void DefaultShowsLogo()
@@ -89,9 +130,24 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             Assert.DoesNotContain(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
         }
 
+        private static string CreateValidCompressionFolder()
+        {
+            var compressionFolder = TestFolders.CreateTempFolder();
+            var metricsFile = Path.Combine(compressionFolder, BuildMetrics.FileName);
+            File.WriteAllText(metricsFile, BuildMetrics.GetValidContents());
+            return compressionFolder;
+        }
+
+        private static string CreateValidCompressionFolderWithFailures()
+        {
+            var compressionFolder = CreateValidCompressionFolder();
+            File.WriteAllText(Path.Combine(compressionFolder, BuildMetrics.FileName), BuildMetrics.GetContentsWithFailures());
+            return compressionFolder;
+        }
+
         private RunResults ExecuteCompress(string options = "")
         {
-            var compressionFolder = TestFolders.OutputFolder;
+            var compressionFolder = CreateValidCompressionFolder();
             var fileNameToCreate = TestFolders.DefineTempFile("FileNameToCreate.zip");
             var results = DryRunExe(fileNameToCreate, compressionFolder, options);
             return results;

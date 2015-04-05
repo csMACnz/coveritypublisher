@@ -56,7 +56,8 @@ namespace csmacnz.CoverityPublisher
             {
                 Output = output,
                 Directory = directory,
-                ProduceZipFile = !args.OptDryrun
+                ProduceZipFile = !args.OptDryrun,
+                AbortOnFailures = args.OptAbortonfailures
             };
             return payload;
         }

@@ -9,6 +9,8 @@ namespace csmacnz.CoverityPublisher
 {
     public static class ZipCompressor
     {
+        private static readonly string BuildMetricsXml = "BUILD.metrics.xml";
+
         public static ActionResult Compress(CompressPayload payload)
         {
             var validationResult = Validate(payload);
@@ -49,7 +51,31 @@ namespace csmacnz.CoverityPublisher
 
         private static ActionResult Validate(CompressPayload payload)
         {
-            if (!File.Exists(Path.Combine(payload.Directory, "BUILD.metrics.xml")))
+            if (!Directory.Exists(payload.Directory))
+            {
+                return new ActionResult
+                {
+                    Successful = false,
+                    Message = "Input folder '{0}' cannot be found.".FormatWith(payload.Directory)
+                };
+            }
+            if (File.Exists(payload.Output))
+            {
+                if (payload.OverwriteExistingFile)
+                {
+                    //TODO: Handle Console as a Dependency
+                    Console.WriteLine("Overwritting file '{0}' with new compression data.", payload.Output);
+                }
+                else
+                {
+                    return new ActionResult
+                    {
+                        Successful = false,
+                        Message = "Output file '{0}' already exists.".FormatWith(payload.Output)
+                    };
+                }
+            }
+            if (!File.Exists(Path.Combine(payload.Directory, BuildMetricsXml)))
             {
                 return new ActionResult
                 {
@@ -71,7 +97,7 @@ namespace csmacnz.CoverityPublisher
 
         private static bool CoverityResultsHaveFailures(string directory)
         {
-            XDocument doc = XDocument.Load(Path.Combine(directory, "BUILD.metrics.xml"));
+            XDocument doc = XDocument.Load(Path.Combine(directory, BuildMetricsXml));
             var failureCount = doc.Root.Element(@"metrics")
                 .Elements(@"metric")
                 .Where(e => e.Element(@"name").Value == "failures")

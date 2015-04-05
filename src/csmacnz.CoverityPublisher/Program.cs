@@ -32,30 +32,11 @@ namespace csmacnz.CoverityPublisher
 
         private static CompressPayload ParseCompressPayload(MainArgs args)
         {
-            var directory = args.OptDirectory;
-            if (!Directory.Exists(directory))
-            {
-                Console.Error.WriteLine("Input folder '{0}' cannot be found.", directory);
-                Environment.Exit(1);
-                
-            }
-            var output = args.OptOutput;
-            if (File.Exists(output))
-            {
-                if (args.OptOverwrite)
-                {
-                    Console.WriteLine("Overwritting file '{0}' with new compression data.", output);
-                }
-                else
-                {
-                    Console.Error.WriteLine("Output file '{0}' already exists.", output);
-                    Environment.Exit(1);
-                }
-            }
             var payload = new CompressPayload
             {
-                Output = output,
-                Directory = directory,
+                Output = args.OptOutput,
+                Directory = args.OptDirectory,
+                OverwriteExistingFile = args.OptOverwrite,
                 ProduceZipFile = !args.OptDryrun,
                 AbortOnFailures = args.OptAbortonfailures
             };

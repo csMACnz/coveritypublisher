@@ -79,10 +79,10 @@ namespace csmacnz.CoverityPublisher
                 Environment.Exit(1);
             }
 
-            string repoName = Unquoted(args.OptReponame);
+            string repoName = args.OptReponame.Unquoted();
             if (repoName.IsNullOrWhitespace())
             {
-                repoName = Unquoted(Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME"));
+                repoName = Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME").Unquoted();
                 if (repoName.IsNullOrWhitespace())
                 {
                     Console.Error.WriteLine("No repository name provided, and could not be resolved.");
@@ -115,21 +115,6 @@ namespace csmacnz.CoverityPublisher
                 SubmitToCoverity = !dryrun
             };
             return payload;
-        }
-
-        public static string Unquoted(string theString)
-        {
-            if (theString.IsNull()) return null;
-            if(theString.Length<2)return theString;
-
-            const char singleQuote = '\'';
-            const char doubleQuote = '"';
-            if ((theString[0] == doubleQuote && theString[theString.Length - 1] == doubleQuote)
-                || (theString[0] == singleQuote && theString[theString.Length - 1] == singleQuote))
-            {
-                return theString.Substring(1, theString.Length - 2);
-            }
-            return theString;
         }
     }
 }

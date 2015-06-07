@@ -24,10 +24,6 @@ properties {
 
 task default
 
-task RestoreNuGetPackages {
-    exec { nuget.exe restore $sln_file }
-}
-
 task SetChocolateyPath {
 	$script:chocolateyDir = $null
 	if ($env:ChocolateyInstall -ne $null) {
@@ -39,6 +35,13 @@ task SetChocolateyPath {
 	}
 
     Write-Output "Chocolatey installed at $script:chocolateyDir";
+}
+
+task RestoreNuGetPackages -depends SetChocolateyPath {
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe restore $sln_file }
 }
 
 task GitVersion -depends SetChocolateyPath {
@@ -151,7 +154,7 @@ task archive-only {
 
 task pack -depends build, pack-only
 
-task pack-only {
+task pack-only -depends SetChocolateyPath {
 
     mkdir $nuget_pack_dir
     cp "$nuspec_filename" "$nuget_pack_dir"
@@ -162,7 +165,10 @@ task pack-only {
     $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
     $Spec.Save("$nuget_pack_dir\$nuspec_filename")
 
-    exec { nuget pack "$nuget_pack_dir\$nuspec_filename" }
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe pack "$nuget_pack_dir\$nuspec_filename" }
 }
 
 task postbuild -depends pack, archive, coverage-only, coveralls

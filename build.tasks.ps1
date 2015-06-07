@@ -28,8 +28,24 @@ task RestoreNuGetPackages {
     exec { nuget.exe restore $sln_file }
 }
 
-task GitVersion {
-    GitVersion /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+task SetChocolateyPath {
+	$script:chocolateyDir = $null
+	if ($env:ChocolateyInstall -ne $null) {
+		$script:chocolateyDir = $env:ChocolateyInstall;
+	} elseif (Test-Path (Join-Path $env:SYSTEMDRIVE Chocolatey)) {
+		$script:chocolateyDir = Join-Path $env:SYSTEMDRIVE Chocolatey;
+	} elseif (Test-Path (Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey)) {
+		$script:chocolateyDir = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey;
+	}
+
+    Write-Output "Chocolatey installed at $script:chocolateyDir";
+}
+
+task GitVersion -depends SetChocolateyPath {
+	$chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
+
+    & $gitVersionExe /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
 }
 
 task AppVeyorEnvironmentSettings {

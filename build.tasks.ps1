@@ -76,7 +76,7 @@ task build {
 task setup-coverity-local {
   $env:APPVEYOR_BUILD_FOLDER = "."
   $env:APPVEYOR_BUILD_VERSION = $script:version
-  $env:APPVEYOR_REPO_NAME = "csmacnz/coveritypublisher"
+  $env:APPVEYOR_REPO_NAME = "csMACnz/coveritypublisher"
   "You should have set the COVERITY_TOKEN and COVERITY_EMAIL environment variables already"
   $env:APPVEYOR_SCHEDULED_BUILD = "True"
 }
@@ -89,9 +89,11 @@ task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } 
   
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
   
-  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity compress -o $coverityFileName
+  $coverity = "$build_output_dir\PublishCoverity"
 
-  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
+  & $coverity compress -o $coverityFileName
+
+  & $coverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
 }
 
 task ResolveCoverallsPath {
@@ -101,7 +103,7 @@ task ResolveCoverallsPath {
 task coverage -depends build, coverage-only
 
 task coverage-only {
-    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" .\src\csmacnz.CoverityPublisher.Unit.Tests\bin\Release\csmacnz.CoverityPublisher.Unit.Tests.dll .\src\csmacnz.CoverityPublisher.Integration.Tests\bin\Release\csmacnz.CoverityPublisher.Integration.Tests.dll
+    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
     $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
     
     $coverageFilePath = $coverageFilePath.ToString()

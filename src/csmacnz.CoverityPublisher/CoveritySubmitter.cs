@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
+using BCLExtensions;
+using Flurl;
+using Newtonsoft.Json;
 
 namespace csmacnz.CoverityPublisher
 {
-    public class CoveritySubmitter
+    public static class CoveritySubmitter
     {
         public static ActionResult Submit(PublishPayload payload)
         {
@@ -13,15 +15,16 @@ namespace csmacnz.CoverityPublisher
             {
                 using (var form = new MultipartFormDataContent
                 {
-                    {new StringContent(payload.Token), "token"},
-                    {new StringContent(payload.Email), "email"},
-                    {new StreamContent(fs), "file", payload.FileName},
-                    {new StringContent(payload.Version), "version"},
-                    {new StringContent(payload.Description), "description"}
+                    CreateStringContent("token", payload.Token),
+                    CreateStringContent("email", payload.Email),
+                    CreateFileContent(fs, "file", payload.FileName),
+                    CreateStringContent("version", payload.Version),
+                    CreateStringContent("description", payload.Description),
                 })
                 {
-
-                    var url = string.Format("https://scan.coverity.com/builds?project={0}", payload.RepositoryName);
+                    var x = new Url("https://scan.coverity.com/builds");
+                    x.SetQueryParam("project", payload.RepositoryName);
+                    Uri url = new Uri(x.ToString());
 
                     ActionResult results = new ActionResult
                     {
@@ -39,8 +42,26 @@ namespace csmacnz.CoverityPublisher
                             else
                             {
                                 results.Successful = false;
-                                results.Message = "There was an error submitting your report: \n" +
-                                                  response.ReasonPhrase;
+                                string content = response.Content.ReadAsStringAsync().Result;
+                                string message = TryGetJsonMessageFromResponse(content);
+                                if (message.IsNotNull())
+                                {
+                                    if (message.StartsWith("The build submission quota for this project has been reached."))
+                                    {
+                                        results.Successful = true;
+                                        results.Message = message;
+                                    }
+                                    else
+                                    {
+                                        results.Message = "There was an error submitting your report: \n" +
+                                                          response.ReasonPhrase + "; " + message;
+                                    }
+                                }
+                                else
+                                {
+                                    results.Message = "There was an error submitting your report: \n" +
+                                                          response.ReasonPhrase + "; " + content;
+                                }
                             }
                         }
                         catch (AggregateException exception)
@@ -58,5 +79,35 @@ namespace csmacnz.CoverityPublisher
                 }
             }
         }
+
+        private static HttpContent CreateFileContent(FileStream stream, string name, string fileName)
+        {
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.Add("Content-Type", "application/x-zip-compressed");
+            streamContent.Headers.Add("Content-Disposition", "form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"");
+            return streamContent;
+        }
+
+        private static HttpContent CreateStringContent(string name, string value)
+        {
+            var stringContent = new StringContent(value);
+            stringContent.Headers.Clear();
+            stringContent.Headers.Add("Content-Disposition", "form-data; name=\"" + name + "\"");
+            return stringContent;
+        }
+
+        private static string TryGetJsonMessageFromResponse(string content)
+        {
+            try
+            {
+                dynamic result = JsonConvert.DeserializeObject(content);
+                return result.message;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
     }
 }

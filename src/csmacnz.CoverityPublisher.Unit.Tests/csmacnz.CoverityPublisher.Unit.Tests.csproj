@@ -71,6 +71,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="CoveritySubmitterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

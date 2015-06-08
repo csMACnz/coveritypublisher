@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -10,7 +11,7 @@ namespace csmacnz.CoverityPublisher
     {
         public static void Main(string[] argv)
         {
-            var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
+            var args = new MainArgs(argv, exit: true, version: GetDisplayVersion());
             if (!args.OptNologo)
             {
                 PrintLogo();
@@ -28,6 +29,11 @@ namespace csmacnz.CoverityPublisher
                 var results = ZipCompressor.Compress(payload);
                 ProcessResult(results);
             }
+        }
+
+        private static string GetDisplayVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion;
         }
 
         private static CompressPayload ParseCompressPayload(MainArgs args)

@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>PublishCoverity.ico</ApplicationIcon>
+    <ApplicationIcon>Properties\PublishCoverity.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>csmacnz.CoverityPublisher.Program</StartupObject>
@@ -104,7 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.usage.txt" />
-    <Content Include="PublishCoverity.ico" />
+    <Content Include="Properties\PublishCoverity.ico" />
     <None Include="T4DocoptNet.tt.settings.xml" />
   </ItemGroup>
   <ItemGroup>

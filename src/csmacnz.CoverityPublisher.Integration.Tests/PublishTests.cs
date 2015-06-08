@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using csmacnz.CoverityPublisher.Integration.Tests.TestFramework;
 using Xunit;
 
@@ -29,17 +28,6 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
 
         public class RepoNameTests
         {
-            [Fact]
-            public void NameWithoutSlashFails()
-            {
-                var testfilePath = CreateTempZipFile();
-
-                var results = RunMinimumValidExeWithRepository(testfilePath, repository: "USERREPO");
-
-                Assert.NotEqual(0, results.ExitCode);
-                Assert.Contains("Invalid repository name 'USERREPO' provided.", results.StandardError);
-            }
-
             [Fact]
             public void RepoNameArgNotProvidedAppveyorRepoNameSetSucceeds()
             {
@@ -183,7 +171,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
 
         private static string CreateTempZipFile()
         {
-            var testfilePath = TestFolders.GetTempFile("zip");
+            var testfilePath = TestFolders.CreateTempFile("zip");
             return "\"" + testfilePath + "\"";
         }
 

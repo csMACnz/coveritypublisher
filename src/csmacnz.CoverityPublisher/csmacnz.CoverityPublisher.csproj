@@ -34,17 +34,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>PublishCoverity.ico</ApplicationIcon>
+    <ApplicationIcon>Properties\PublishCoverity.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>csmacnz.CoverityPublisher.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BCLExtensions">
-      <HintPath>..\packages\BCLExtensions.1.0.0\lib\BCLExtensions.dll</HintPath>
+    <Reference Include="BCLExtensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BCLExtensions.1.1.0\lib\BCLExtensions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="DocoptNet">
       <HintPath>..\packages\docopt.net.0.6.1.6\lib\net40\DocoptNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Flurl, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Flurl.1.0.7\lib\portable-net40+sl50+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Flurl.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -95,7 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.usage.txt" />
-    <Content Include="PublishCoverity.ico" />
+    <Content Include="Properties\PublishCoverity.ico" />
     <None Include="T4DocoptNet.tt.settings.xml" />
   </ItemGroup>
   <ItemGroup>

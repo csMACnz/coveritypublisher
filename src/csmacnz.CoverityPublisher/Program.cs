@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using BCLExtensions;
@@ -11,7 +11,7 @@ namespace csmacnz.CoverityPublisher
     {
         public static void Main(string[] argv)
         {
-            var args = new MainArgs(argv, exit: true, version: Assembly.GetEntryAssembly().GetName().Version);
+            var args = new MainArgs(argv, exit: true, version: GetDisplayVersion());
             if (!args.OptNologo)
             {
                 PrintLogo();
@@ -31,12 +31,20 @@ namespace csmacnz.CoverityPublisher
             }
         }
 
+        private static string GetDisplayVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductVersion;
+        }
+
         private static CompressPayload ParseCompressPayload(MainArgs args)
         {
             var payload = new CompressPayload
             {
                 Output = args.OptOutput,
-                Directory = args.OptDirectory
+                Directory = args.OptDirectory,
+                OverwriteExistingFile = args.OptOverwrite,
+                ProduceZipFile = !args.OptDryrun,
+                AbortOnFailures = args.OptAbortonfailures
             };
             return payload;
         }
@@ -77,10 +85,10 @@ namespace csmacnz.CoverityPublisher
                 Environment.Exit(1);
             }
 
-            string repoName = Unquoted(args.OptReponame);
+            string repoName = args.OptReponame.Unquoted();
             if (repoName.IsNullOrWhitespace())
             {
-                repoName = Unquoted(Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME"));
+                repoName = Environment.GetEnvironmentVariable("APPVEYOR_REPO_NAME").Unquoted();
                 if (repoName.IsNullOrWhitespace())
                 {
                     Console.Error.WriteLine("No repository name provided, and could not be resolved.");
@@ -91,12 +99,7 @@ namespace csmacnz.CoverityPublisher
                     Console.WriteLine("Resolved repository name '{0}' from $env:APPVEYOR_REPO_NAME", repoName);
                 }
             }
-            if (!repoName.Contains("/"))
-            {
-                Console.Error.WriteLine("Invalid repository name '{0}' provided.", repoName);
-                Environment.Exit(1);
-            }
-
+            
             string coverityToken = args.OptToken;
             string description = args.OptDescription;
             string email = args.OptEmail;
@@ -118,21 +121,6 @@ namespace csmacnz.CoverityPublisher
                 SubmitToCoverity = !dryrun
             };
             return payload;
-        }
-
-        public static string Unquoted(string theString)
-        {
-            if (theString.IsNull()) return null;
-            if(theString.Length<2)return theString;
-
-            const char singleQuote = '\'';
-            const char doubleQuote = '"';
-            if ((theString[0] == doubleQuote && theString[theString.Length - 1] == doubleQuote)
-                || (theString[0] == singleQuote && theString[theString.Length - 1] == singleQuote))
-            {
-                return theString.Substring(1, theString.Length - 2);
-            }
-            return theString;
         }
     }
 }

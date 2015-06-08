@@ -1,7 +1,7 @@
-choco install psake
-choco install pscx
-choco install GitVersion.Portable
-choco install nuget.CommandLine
+choco install -y psake
+choco install -y pscx
+choco install -y GitVersion.Portable
+choco install -y nuget.CommandLine
 
 $pscxPath = "C:\Program Files (x86)\PowerShell Community Extensions\Pscx3\Pscx";
 

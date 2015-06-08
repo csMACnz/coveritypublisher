@@ -24,12 +24,31 @@ properties {
 
 task default
 
-task RestoreNuGetPackages {
-    exec { nuget.exe restore $sln_file }
+task SetChocolateyPath {
+	$script:chocolateyDir = $null
+	if ($env:ChocolateyInstall -ne $null) {
+		$script:chocolateyDir = $env:ChocolateyInstall;
+	} elseif (Test-Path (Join-Path $env:SYSTEMDRIVE Chocolatey)) {
+		$script:chocolateyDir = Join-Path $env:SYSTEMDRIVE Chocolatey;
+	} elseif (Test-Path (Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey)) {
+		$script:chocolateyDir = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey;
+	}
+
+    Write-Output "Chocolatey installed at $script:chocolateyDir";
 }
 
-task GitVersion {
-    GitVersion /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+task RestoreNuGetPackages -depends SetChocolateyPath {
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe restore $sln_file }
+}
+
+task GitVersion -depends SetChocolateyPath {
+	$chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
+
+    & $gitVersionExe /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
 }
 
 task AppVeyorEnvironmentSettings {
@@ -76,7 +95,7 @@ task build {
 task setup-coverity-local {
   $env:APPVEYOR_BUILD_FOLDER = "."
   $env:APPVEYOR_BUILD_VERSION = $script:version
-  $env:APPVEYOR_REPO_NAME = "csmacnz/coveritypublisher"
+  $env:APPVEYOR_REPO_NAME = "csMACnz/coveritypublisher"
   "You should have set the COVERITY_TOKEN and COVERITY_EMAIL environment variables already"
   $env:APPVEYOR_SCHEDULED_BUILD = "True"
 }
@@ -89,9 +108,11 @@ task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } 
   
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
   
-  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity compress -o $coverityFileName
+  $coverity = "$build_output_dir\PublishCoverity"
 
-  .\src\csmacnz.CoverityPublisher\bin\Release\PublishCoverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
+  & $coverity compress -o $coverityFileName
+
+  & $coverity publish -t $env:COVERITY_TOKEN -e $env:COVERITY_EMAIL -z $coverityFileName -d "AppVeyor scheduled build ($env:APPVEYOR_BUILD_VERSION)." --codeVersion $script:nugetVersion
 }
 
 task ResolveCoverallsPath {
@@ -101,7 +122,7 @@ task ResolveCoverallsPath {
 task coverage -depends build, coverage-only
 
 task coverage-only {
-    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" .\src\csmacnz.CoverityPublisher.Unit.Tests\bin\Release\csmacnz.CoverityPublisher.Unit.Tests.dll .\src\csmacnz.CoverityPublisher.Integration.Tests\bin\Release\csmacnz.CoverityPublisher.Integration.Tests.dll
+    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
     $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
     
     $coverageFilePath = $coverageFilePath.ToString()
@@ -133,7 +154,7 @@ task archive-only {
 
 task pack -depends build, pack-only
 
-task pack-only {
+task pack-only -depends SetChocolateyPath {
 
     mkdir $nuget_pack_dir
     cp "$nuspec_filename" "$nuget_pack_dir"
@@ -144,13 +165,16 @@ task pack-only {
     $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
     $Spec.Save("$nuget_pack_dir\$nuspec_filename")
 
-    exec { nuget pack "$nuget_pack_dir\$nuspec_filename" }
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe pack "$nuget_pack_dir\$nuspec_filename" }
 }
 
 task postbuild -depends pack, archive, coverage-only, coveralls
 
 task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
-task appveyor-build -depends RestoreNuGetPackages, build
+task appveyor-build -depends build
 
 task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity

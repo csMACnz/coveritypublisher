@@ -43,7 +43,20 @@ namespace csmacnz.CoverityPublisher.Integration.Tests.TestFramework
             return Path.GetFullPath(Path.Combine(OutputFolder, fileName));
         }
 
-        public static string GetTempFile(string extension)
+        public static string DefineTempFile(string fileName)
+        {
+            var dirInfo = CreateTempFolder();
+            return Path.GetFullPath(Path.Combine(dirInfo, fileName));
+        }
+
+        public static string CreateTempFolder()
+        {
+            var randomFolderName = Path.GetRandomFileName();
+            var dirInfo = Directory.CreateDirectory(Path.Combine(TempFolder, randomFolderName));
+            return dirInfo.FullName;
+        }
+
+        public static string CreateTempFile(string extension)
         {
             var path = Path.GetTempFileName();
             var newPath = path.Replace(".tmp", "." + extension);

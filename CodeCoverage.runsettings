@@ -11,6 +11,10 @@
               <Include>
                 <ModulePath>.*CoverityPublisher.*</ModulePath>
               </Include>
+              <Exclude>
+                <ModulePath>.*xunit.core.dll</ModulePath>
+                <ModulePath>.*docoptnet.dll</ModulePath>
+              </Exclude>
             </ModulePaths>
 
           </CodeCoverage>

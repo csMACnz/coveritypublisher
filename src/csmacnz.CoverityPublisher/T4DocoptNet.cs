@@ -11,7 +11,7 @@ namespace csmacnz.CoverityPublisher
         public const string USAGE = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
-  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite]
+  PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--abortOnFailures] [--dryrun] [--nologo]
   PublishCoverity publish -t <token> -e <email> [-r <name>] [-z <file>] [-d <desc>] [--codeVersion <version>] [--dryrun] [--nologo]
   PublishCoverity --version
   PublishCoverity --help
@@ -21,6 +21,7 @@ Options:
  -i <folder>, --directory <folder>        The folder to zip up for coverity. [default: cov-int]
  -o <file>, --output <file>               The location to save the zip file to. [default: coverity.zip]
  --overwrite                              If provided, will automatically overwrite the output file location.
+ --abortOnFailures                        If Coverity Scan has reported any errors, abort the compression.
  -z <file>, --zip <file>                  The zip file to upload. [default: coverity.zip]
  -r <name>, --repoName <name>             Your repository name in the form of USER/REPO. If missing, will attempt to resolve using Environment variables. [default: ] 
  -e <email>, --email <name>               The email address to notify of the scan.
@@ -54,6 +55,9 @@ What its for:
 		public string OptOutput { get { return _args["--output"].ToString(); } }
 		public string OptDirectory { get { return _args["--directory"].ToString(); } }
 		public bool OptOverwrite { get { return _args["--overwrite"].IsTrue; } }
+		public bool OptAbortonfailures { get { return _args["--abortOnFailures"].IsTrue; } }
+		public bool OptDryrun { get { return _args["--dryrun"].IsTrue; } }
+		public bool OptNologo { get { return _args["--nologo"].IsTrue; } }
 		public bool CmdPublish { get { return _args["publish"].IsTrue; } }
 		public string OptToken { get { return _args["--token"].ToString(); } }
 		public string OptEmail { get { return _args["--email"].ToString(); } }
@@ -61,8 +65,6 @@ What its for:
 		public string OptZip { get { return _args["--zip"].ToString(); } }
 		public string OptDescription { get { return _args["--description"].ToString(); } }
 		public string OptCodeversion { get { return _args["--codeVersion"].ToString(); } }
-		public bool OptDryrun { get { return _args["--dryrun"].IsTrue; } }
-		public bool OptNologo { get { return _args["--nologo"].IsTrue; } }
 		public bool OptVersion { get { return _args["--version"].IsTrue; } }
 		public bool OptHelp { get { return _args["--help"].IsTrue; } }
 	

@@ -24,12 +24,31 @@ properties {
 
 task default
 
-task RestoreNuGetPackages {
-    exec { nuget.exe restore $sln_file }
+task SetChocolateyPath {
+	$script:chocolateyDir = $null
+	if ($env:ChocolateyInstall -ne $null) {
+		$script:chocolateyDir = $env:ChocolateyInstall;
+	} elseif (Test-Path (Join-Path $env:SYSTEMDRIVE Chocolatey)) {
+		$script:chocolateyDir = Join-Path $env:SYSTEMDRIVE Chocolatey;
+	} elseif (Test-Path (Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey)) {
+		$script:chocolateyDir = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey;
+	}
+
+    Write-Output "Chocolatey installed at $script:chocolateyDir";
 }
 
-task GitVersion {
-    GitVersion /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+task RestoreNuGetPackages -depends SetChocolateyPath {
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe restore $sln_file }
+}
+
+task GitVersion -depends SetChocolateyPath {
+	$chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
+
+    & $gitVersionExe /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
 }
 
 task AppVeyorEnvironmentSettings {
@@ -128,31 +147,34 @@ task archive-only {
 
     mkdir $archive_dir
 
-    cp "$build_output_dir\PublishCoverity.exe" "$archive_dir"
+    cp "$build_output_dir\*.*" "$archive_dir"
 
     Write-Zip -Path "$archive_dir\*" -OutputPath $archive_filename
 }
 
 task pack -depends build, pack-only
 
-task pack-only {
+task pack-only -depends SetChocolateyPath {
 
     mkdir $nuget_pack_dir
     cp "$nuspec_filename" "$nuget_pack_dir"
 
-    cp "$build_output_dir\PublishCoverity.exe" "$nuget_pack_dir"
+    cp "$build_output_dir\*.*" "$nuget_pack_dir"
 
     $Spec = [xml](get-content "$nuget_pack_dir\$nuspec_filename")
     $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
     $Spec.Save("$nuget_pack_dir\$nuspec_filename")
 
-    exec { nuget pack "$nuget_pack_dir\$nuspec_filename" }
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe pack "$nuget_pack_dir\$nuspec_filename" }
 }
 
 task postbuild -depends pack, archive, coverage-only, coveralls
 
 task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
-task appveyor-build -depends RestoreNuGetPackages, build
+task appveyor-build -depends build
 
 task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity

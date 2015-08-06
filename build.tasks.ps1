@@ -48,7 +48,7 @@ task GitVersion -depends SetChocolateyPath {
 	$chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
 	$gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
 
-    & $gitVersionExe /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+    & $gitVersionExe /output buildserver /updateassemblyinfo
 }
 
 task AppVeyorEnvironmentSettings {
@@ -103,11 +103,11 @@ task setup-coverity-local {
 task test-coverity -depends setup-coverity-local, coverity
 
 task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } {
-  
+
   & cov-build --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
-  
+
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
-  
+
   $coverity = "$build_output_dir\PublishCoverity"
 
   & $coverity compress -o $coverityFileName
@@ -124,11 +124,11 @@ task coverage -depends build, coverage-only
 task coverage-only {
     vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
     $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
-    
+
     $coverageFilePath = $coverageFilePath.ToString()
-    
+
     if(Test-Path .\coverage.coveragexml){ rm .\coverage.coveragexml }
-    
+
     ."C:\Program Files (x86)\Microsoft Visual Studio 12.0\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe" analyze /output:coverage.coveragexml "$coverageFilePath"
 }
 

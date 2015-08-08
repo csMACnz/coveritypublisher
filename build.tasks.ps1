@@ -2,8 +2,8 @@ properties {
     # build variables
     $framework = "4.5.1"		# .net framework version
     $configuration = "Release"	# build configuration
-    $script:version = "1.0.0"
-    $script:nugetVersion = "1.0.0"
+    $script:version = "0.0.1"
+    $script:nugetVersion = "0.0.1"
     $script:runCoverity = $false
 
     # directories
@@ -156,19 +156,11 @@ task pack -depends build, pack-only
 
 task pack-only -depends SetChocolateyPath {
 
-    mkdir $nuget_pack_dir
-    cp "$nuspec_filename" "$nuget_pack_dir"
-
-    cp "$build_output_dir\*.*" "$nuget_pack_dir"
-
-    $Spec = [xml](get-content "$nuget_pack_dir\$nuspec_filename")
-    $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
-    $Spec.Save("$nuget_pack_dir\$nuspec_filename")
-
     $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+
     $NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
 
-    exec { & $NuGetExe pack "$nuget_pack_dir\$nuspec_filename" }
+    exec { & $NuGetExe pack .\src\csmacnz.CoverityPublisher\csmacnz.CoverityPublisher.nuspec -Version $script:nugetVersion -Properties Configuration=Release }
 }
 
 task postbuild -depends pack, archive, coverage-only, coveralls

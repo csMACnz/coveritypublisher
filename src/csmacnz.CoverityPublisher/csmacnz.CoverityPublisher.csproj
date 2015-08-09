@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="csmacnz.CoverityPublisher.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -103,8 +104,8 @@
     <None Include="T4DocoptNet.tt.hooks.t4" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Main.usage.txt" />
-    <Content Include="Properties\PublishCoverity.ico" />
+    <None Include="Main.usage.txt" />
+    <None Include="Properties\PublishCoverity.ico" />
     <None Include="T4DocoptNet.tt.settings.xml" />
   </ItemGroup>
   <ItemGroup>

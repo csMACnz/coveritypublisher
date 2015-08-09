@@ -2,8 +2,8 @@ properties {
     # build variables
     $framework = "4.5.1"		# .net framework version
     $configuration = "Release"	# build configuration
-    $script:version = "1.0.0"
-    $script:nugetVersion = "1.0.0"
+    $script:version = "0.0.1"
+    $script:nugetVersion = "0.0.1"
     $script:runCoverity = $false
 
     # directories
@@ -25,30 +25,30 @@ properties {
 task default
 
 task SetChocolateyPath {
-	$script:chocolateyDir = $null
-	if ($env:ChocolateyInstall -ne $null) {
-		$script:chocolateyDir = $env:ChocolateyInstall;
-	} elseif (Test-Path (Join-Path $env:SYSTEMDRIVE Chocolatey)) {
-		$script:chocolateyDir = Join-Path $env:SYSTEMDRIVE Chocolatey;
-	} elseif (Test-Path (Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey)) {
-		$script:chocolateyDir = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey;
-	}
+    $script:chocolateyDir = $null
+    if ($env:ChocolateyInstall -ne $null) {
+        $script:chocolateyDir = $env:ChocolateyInstall;
+    } elseif (Test-Path (Join-Path $env:SYSTEMDRIVE Chocolatey)) {
+        $script:chocolateyDir = Join-Path $env:SYSTEMDRIVE Chocolatey;
+    } elseif (Test-Path (Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey)) {
+        $script:chocolateyDir = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) Chocolatey;
+    }
 
     Write-Output "Chocolatey installed at $script:chocolateyDir";
 }
 
 task RestoreNuGetPackages -depends SetChocolateyPath {
     $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
-	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+    $NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
 
     exec { & $NuGetExe restore $sln_file }
 }
 
 task GitVersion -depends SetChocolateyPath {
-	$chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
-	$gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
+    $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
+    $gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
 
-    & $gitVersionExe /output buildserver /updateassemblyinfo true /assemblyVersionFormat Major
+    & $gitVersionExe /output buildserver /updateassemblyinfo
 }
 
 task AppVeyorEnvironmentSettings {
@@ -103,11 +103,11 @@ task setup-coverity-local {
 task test-coverity -depends setup-coverity-local, coverity
 
 task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } {
-  
+
   & cov-build --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
-  
+
   $coverityFileName = "$applicationName.coverity.$script:nugetVersion.zip"
-  
+
   $coverity = "$build_output_dir\PublishCoverity"
 
   & $coverity compress -o $coverityFileName
@@ -116,7 +116,7 @@ task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } 
 }
 
 task ResolveCoverallsPath {
-    $script:coveralls = (Resolve-Path "src/packages/coveralls.net.*/csmacnz.coveralls.exe").ToString()
+    $script:coveralls = (Resolve-Path "src/packages/coveralls.net.*/tools/csmacnz.coveralls.exe").ToString()
 }
 
 task coverage -depends build, coverage-only
@@ -124,11 +124,11 @@ task coverage -depends build, coverage-only
 task coverage-only {
     vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
     $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
-    
+
     $coverageFilePath = $coverageFilePath.ToString()
-    
+
     if(Test-Path .\coverage.coveragexml){ rm .\coverage.coveragexml }
-    
+
     ."C:\Program Files (x86)\Microsoft Visual Studio 12.0\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe" analyze /output:coverage.coveragexml "$coverageFilePath"
 }
 
@@ -156,19 +156,11 @@ task pack -depends build, pack-only
 
 task pack-only -depends SetChocolateyPath {
 
-    mkdir $nuget_pack_dir
-    cp "$nuspec_filename" "$nuget_pack_dir"
-
-    cp "$build_output_dir\*.*" "$nuget_pack_dir"
-
-    $Spec = [xml](get-content "$nuget_pack_dir\$nuspec_filename")
-    $Spec.package.metadata.version = ([string]$Spec.package.metadata.version).Replace("{Version}", $script:nugetVersion)
-    $Spec.Save("$nuget_pack_dir\$nuspec_filename")
-
     $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
-	$NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
 
-    exec { & $NuGetExe pack "$nuget_pack_dir\$nuspec_filename" }
+    $NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+
+    exec { & $NuGetExe pack .\src\csmacnz.CoverityPublisher\csmacnz.CoverityPublisher.nuspec -Version $script:nugetVersion -Properties Configuration=Release }
 }
 
 task postbuild -depends pack, archive, coverage-only, coveralls

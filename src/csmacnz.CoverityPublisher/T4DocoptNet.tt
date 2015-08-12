@@ -14,7 +14,7 @@ T4DocopNet Version 0.1.0
 <#
 // This directive will be updated at package install time
 // by install.ps1. It can also be set manually to point
-// to the right path. 
+// to the right path.
 #>
 <#@ assembly name="$(SolutionDir)packages\docopt.net.0.6.1.6\lib\net40\\DocoptNet.dll"  #>
 <#@ import namespace="System.Collections.Generic" #>
@@ -28,7 +28,6 @@ T4DocopNet Version 0.1.0
 <#@ import namespace="EnvDTE80" #>
 <#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
 
-using System.Collections;
 using System.Collections.Generic;
 using DocoptNet;
 
@@ -62,13 +61,13 @@ namespace <#= System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("Name
         PushIndent("		");
         Write(s);
         ClearIndent();
-#>	
+#>
     }
 
 <#
     }
 
-#>	
+#>
 }
 
 <#+
@@ -86,7 +85,7 @@ namespace <#= System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("Name
 
         private static string ExtractName(string fileName)
         {
-        
+
             var s = Path.GetFileName(fileName).Replace(".usage.txt", "");
             var res = "";
             var first = true;

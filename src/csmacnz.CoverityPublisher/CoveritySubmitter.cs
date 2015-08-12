@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Http;
 using BCLExtensions;
+using Flurl;
 using Newtonsoft.Json;
 
 namespace csmacnz.CoverityPublisher
@@ -12,9 +13,18 @@ namespace csmacnz.CoverityPublisher
         {
             using (var fs = new FileStream(payload.FileName, FileMode.Open, FileAccess.Read))
             {
-                using (MultipartFormDataContent form = BuildForm(payload, fs))
+                using (var form = new MultipartFormDataContent
                 {
-                    var url = new Uri("http://scan5.coverity.com/cgi-bin/upload.py");
+                    CreateStringContent("token", payload.Token),
+                    CreateStringContent("email", payload.Email),
+                    CreateFileContent(fs, "file", payload.FileName),
+                    CreateStringContent("version", payload.Version),
+                    CreateStringContent("description", payload.Description),
+                })
+                {
+                    var x = new Url("https://scan.coverity.com/builds");
+                    x.SetQueryParam("project", payload.RepositoryName);
+                    Uri url = new Uri(x.ToString());
 
                     ActionResult results = new ActionResult
                     {
@@ -68,19 +78,6 @@ namespace csmacnz.CoverityPublisher
                     return results;
                 }
             }
-        }
-
-        private static MultipartFormDataContent BuildForm(PublishPayload payload, FileStream fs)
-        {
-            return new MultipartFormDataContent
-                {
-                    CreateStringContent("token", payload.Token),
-                    CreateStringContent("email", payload.Email),
-                    CreateFileContent(fs, "file", payload.FileName),
-                    CreateStringContent("version", payload.Version),
-                    CreateStringContent("description", payload.Description),
-                    CreateStringContent("project", payload.RepositoryName)
-                };
         }
 
         private static HttpContent CreateFileContent(FileStream stream, string name, string fileName)

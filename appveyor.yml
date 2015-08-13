@@ -7,6 +7,10 @@ environment:
     secure: UEqRjr6WeJQzmybaDQ1x8vGceHZcnwS/K67lMvLKaiE=
   COVERALLS_REPO_TOKEN:
     secure: QDrEvPQa9oEzLz7MU477Y4VDEj0NWGv5w08hr+Jv3kxZSUiStqF96yeofnuR1WkC
+cache:
+- src\packages -> **\packages.config
+- C:\ProgramData\chocolatey\bin -> build.environment.ps1
+- C:\ProgramData\chocolatey\lib -> build.environment.ps1
 install:
 - ps: .\build.environment.ps1
 - ps: psake .\build.tasks.ps1 appveyor-install

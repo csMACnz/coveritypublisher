@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="BuildMetrics.cs" />
     <Compile Include="CompressTests.cs" />
+    <Compile Include="Helper\LogoAssert.cs" />
     <Compile Include="PublishTests.cs" />
     <Compile Include="TestFramework\ExeTestRunner.cs" />
     <Compile Include="TestFramework\RunResults.cs" />

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using csmacnz.CoverityPublisher.Integration.Tests.Helper;
 using csmacnz.CoverityPublisher.Integration.Tests.TestFramework;
 using Xunit;
 
@@ -109,11 +110,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             var results = ExecuteCompress();
 
             Assert.Equal(0, results.ExitCode);
-            Assert.Contains(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
-            Assert.Contains(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
-            Assert.Contains(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
-            Assert.Contains(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
-            Assert.Contains(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
+            LogoAssert.ContainsLogo(results.StandardOutput);
         }
 
         [Fact]
@@ -121,13 +118,8 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var results = ExecuteCompress("--nologo");
 
-
             Assert.Equal(0, results.ExitCode);
-            Assert.DoesNotContain(@"|  __ \     | |   | (_)   | |    / ____|                  (_) |", results.StandardOutput);
-            Assert.DoesNotContain(@"| |__) |   _| |__ | |_ ___| |__ | |     _____   _____ _ __ _| |_ _   _", results.StandardOutput);
-            Assert.DoesNotContain(@"|  ___/ | | | '_ \| | / __| '_ \| |    / _ \ \ / / _ \ '__| | __| | | |", results.StandardOutput);
-            Assert.DoesNotContain(@"| |   | |_| | |_) | | \__ \ | | | |___| (_) \ V /  __/ |  | | |_| |_| |", results.StandardOutput);
-            Assert.DoesNotContain(@"|_|    \__,_|_.__/|_|_|___/_| |_|\_____\___/ \_/ \___|_|  |_|\__|\__, |", results.StandardOutput);
+            LogoAssert.DoesNotContainLogo(results.StandardOutput);
         }
 
         private static string CreateValidCompressionFolder()

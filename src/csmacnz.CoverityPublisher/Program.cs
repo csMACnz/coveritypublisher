@@ -7,7 +7,7 @@ using BCLExtensions;
 
 namespace csmacnz.CoverityPublisher
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] argv)
         {
@@ -99,7 +99,7 @@ namespace csmacnz.CoverityPublisher
                     Console.WriteLine("Resolved repository name '{0}' from $env:APPVEYOR_REPO_NAME", repoName);
                 }
             }
-            
+
             string coverityToken = args.OptToken;
             string description = args.OptDescription;
             string email = args.OptEmail;

@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace csmacnz.CoverityPublisher
 {
-    public class Client
+    public static class Client
     {
         public static HttpResponseMessage Post(Uri url, MultipartFormDataContent form)
         {

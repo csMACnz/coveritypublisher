@@ -7,7 +7,7 @@ namespace csmacnz.CoverityPublisher
     // Generated class for Main.usage.txt
     public class MainArgs
     {
-        public const string Usage = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
+        private const string Usage = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
   PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--abortOnFailures] [--dryrun] [--nologo]

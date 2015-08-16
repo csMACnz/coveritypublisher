@@ -1,6 +1,6 @@
 namespace csmacnz.CoverityPublisher.Integration.Tests
 {
-    public class BuildMetrics
+    public static class BuildMetrics
     {
         public static string GetValidContents()
         {

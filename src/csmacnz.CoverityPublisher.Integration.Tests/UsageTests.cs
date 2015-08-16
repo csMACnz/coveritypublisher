@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using BCLExtensions;
 using csmacnz.CoverityPublisher.Integration.Tests.TestFramework;
 using Xunit;
 
@@ -27,7 +28,9 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
         {
             var results = ExeTestRunner.RunExe("--version");
 
-            Assert.True(Regex.IsMatch(results.StandardOutput, @"\d+.\d+.\d+.\d+"));
+            Assert.True(
+                Regex.IsMatch(results.StandardOutput, @"\d+.\d+.\d+(-.*)?"),
+                "Version {0} doesn't match the regex".FormatWith(results.StandardOutput));
         }
 
         [Fact]

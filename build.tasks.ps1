@@ -61,7 +61,7 @@ task InstallResharperCLI -depends SetNugetPath {
 
 task dupfinder -depends InstallResharperCLI {
     $dupfinder = (Resolve-Path ".\tools\JetBrains.ReSharper.CommandLineTools.*\tools\dupfinder.exe").ToString()
-    exec { Try {& $dupfinder /o="duplicateReport.xml" /show-text $sln_file } Catch{} } -errorAction SilentlyContinue
+    exec { cmd /c $dupfinder /o="duplicateReport.xml" /show-text $sln_file 2`> nul }
     [xml]$stats = Get-Content .\duplicateReport.xml
     $anyDuplicates = $FALSE;
 
@@ -95,7 +95,7 @@ task dupfinder -depends InstallResharperCLI {
 
 task inspect -depends InstallResharperCLI {
     $inspectcode = (Resolve-Path ".\tools\JetBrains.ReSharper.CommandLineTools.*\tools\inspectcode.exe").ToString()
-    exec { Try { & $inspectcode /o="resharperReport.xml" $sln_file } Catch {} } -errorAction SilentlyContinue
+    exec { cmd /c $inspectcode /o="resharperReport.xml" $sln_file 2`> nul }
     [xml]$stats = Get-Content .\resharperReport.xml
     $anyErrors = $FALSE;
     $errors = $stats.SelectNodes("/Report/IssueTypes/IssueType")

@@ -187,3 +187,8 @@ FakesAssemblies/
 #Build Artifacts
 cov-int
 PublishCoverity.*.zip
+opencovertests.xml
+*Report.xml
+*Report.html
+
+tools

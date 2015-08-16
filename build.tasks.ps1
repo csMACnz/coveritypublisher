@@ -52,6 +52,91 @@ task GitVersion -depends SetChocolateyPath {
     & $gitVersionExe /output buildserver /updateassemblyinfo
 }
 
+task InstallResharperCLI {
+    nuget install JetBrains.ReSharper.CommandLineTools -OutputDirectory tools -NonInteractive
+}
+
+task dupfinder -depends InstallResharperCLI {
+    $dupfinder = (Resolve-Path ".\tools\JetBrains.ReSharper.CommandLineTools.*\tools\dupfinder.exe").ToString()
+    exec { & $dupfinder /o="duplicateReport.xml" /show-text $sln_file }
+    [xml]$stats = Get-Content .\duplicateReport.xml
+    $anyDuplicates = $FALSE;
+
+    foreach ($duplicate in $stats.DuplicatesReport.Duplicates.Duplicate) {
+        Write-Host "Duplicate code found with a cost of $($duplicate.Cost), in $($duplicateCost.Fragment.Count) fragments"
+
+        foreach ($fragment in $duplicate.Fragment) {
+            Write-Host "File: $($fragment.FileName) Line: $($fragment.LineRange.Start) - $($fragment.LineRange.End)"
+            Write-Host "Text: $($fragment.Text)"
+        }
+
+        $anyDuplicates = $TRUE;
+
+        if(Get-Command "Add-AppveyorTest" -errorAction SilentlyContinue) {
+            Add-AppveyorMessage "Duplicate Found in the file $($fragment.FileName) with a cost of $($duplicate.Cost), across $($duplicate.Fragment.Count) Fragments" -Category Warning -Details "See duplicateReport.xml for details of duplicates"
+            if ([convert]::ToInt32($duplicate.Cost,10) -gt 100){
+                Add-AppveyorTest "Duplicate Found with a cost of $($duplicate.Cost), across $($duplicate.Fragment.Count) Fragments" -Outcome Failed -ErrorMessage "See duplicateReport.xml for details of duplicates" -FileName "$($fragment.FileName)"
+            }
+        }
+    }
+
+    $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
+    $xslt.Load("BuildTools\dupfinder.xslt")
+    $xslt.Transform("duplicateReport.xml", "duplicateReport.html")
+
+    if(Get-Command "Push-AppveyorArtifact" -errorAction SilentlyContinue) {
+        Push-AppveyorArtifact .\duplicateReport.xml
+        Push-AppveyorArtifact .\duplicateReport.html
+    }
+}
+
+task inspect -depends InstallResharperCLI {
+    $inspectcode = (Resolve-Path ".\tools\JetBrains.ReSharper.CommandLineTools.*\tools\inspectcode.exe").ToString()
+    exec { & $inspectcode /o="resharperReport.xml" $sln_file }
+    [xml]$stats = Get-Content .\resharperReport.xml
+    $anyErrors = $FALSE;
+    $errors = $stats.SelectNodes("/Report/IssueTypes/IssueType")
+
+    foreach ($errorType in $errors) {
+        $errorTypeName = $(Get-Culture).TextInfo.ToTitleCase($errorType.Severity.ToLower())
+        Write-Host "Found InspectCode $errorTypeName(s): $($errorType.Description)"
+
+        $issues = $stats.SelectNodes("/Report/Issues/Project/Issue[@TypeId='$($errorType.Id)']")
+        foreach ($issue in $issues) {
+            Write-Host "File: $($issue.File) Line: $($issue.Line) Message: $($issue.Message)"
+
+            if(($errorType.Severity -eq "ERROR") -and (Get-Command "Add-AppveyorTest" -errorAction SilentlyContinue)) {
+                Add-AppveyorTest "Resharper Error: $($errorType.Description) Line: $($issue.Line)" -Outcome Failed -FileName "$($issue.File)" -ErrorMessage "$($issue.Message)"
+            }
+            elseif (Get-Command "Add-AppveyorMessage" -errorAction SilentlyContinue) {
+                if ($errorType.Severity -eq "WARNING") {
+                    Add-AppveyorMessage "Resharper Warning: $($errorType.Description) File: $($issue.File) Line: $($issue.Line)" -Category Warning -Details "$($issue.Message)"
+                }
+                else {
+                    Add-AppveyorMessage "Resharper $($errorTypeName): $($errorType.Description) File: $($issue.File) Line: $($issue.Line)" -Category Information -Details "$($issue.Message)"
+                }
+            }
+        }
+        if($errorType.Severity -eq "ERROR") {
+            $anyErrors = $TRUE
+        }
+    }
+
+    $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
+    $xslt.Load("BuildTools\resharperReport.xslt")
+    $xslt.Transform("resharperReport.xml", "resharperReport.html")
+
+    if (Get-Command "Push-AppveyorArtifact" -errorAction SilentlyContinue) {
+        Push-AppveyorArtifact .\resharperReport.xml
+        Push-AppveyorArtifact .\resharperReport.html
+    }
+
+    if ($anyErrors -eq $TRUE) {
+        Write-Host "There are Resharper errors in the solution"
+    throw "Resharper errors in the solution"
+    }
+}
+
 task AppVeyorEnvironmentSettings {
     if(Test-Path Env:\GitVersion_ClassicVersion) {
         $script:version = $env:GitVersion_ClassicVersion
@@ -173,4 +258,4 @@ task appveyor-install -depends GitVersion, RestoreNuGetPackages
 
 task appveyor-build -depends build
 
-task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity
+task appveyor-test -depends AppVeyorEnvironmentSettings, postbuild, coverity, inspect, dupfinder

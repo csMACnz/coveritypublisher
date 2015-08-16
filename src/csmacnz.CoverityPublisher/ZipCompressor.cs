@@ -64,7 +64,7 @@ namespace csmacnz.CoverityPublisher
                 if (payload.OverwriteExistingFile)
                 {
                     //TODO: Handle Console as a Dependency
-                    Console.WriteLine("Overwritting file '{0}' with new compression data.", payload.Output);
+                    Console.WriteLine("Overwriting file '{0}' with new compression data.", payload.Output);
                 }
                 else
                 {
@@ -97,14 +97,44 @@ namespace csmacnz.CoverityPublisher
 
         private static bool CoverityResultsHaveFailures(string directory)
         {
-            XDocument doc = XDocument.Load(Path.Combine(directory, BuildMetricsXml));
-            var failureCount = doc.Root.Element(@"metrics")
-                .Elements(@"metric")
-                .Where(e => e.Element(@"name").Value == "failures")
-                .Select(e => e.Element(@"value").Value)
-                .FirstOrDefault();
-            
-            return int.Parse(failureCount) > 0;
+            var buildMetricsFilePath = Path.Combine(directory, BuildMetricsXml);
+            if (File.Exists(buildMetricsFilePath))
+            {
+                var failuresValue = GetFailureCountFromFile(buildMetricsFilePath);
+
+                int failureCount;
+                return int.TryParse(failuresValue, out failureCount) && failureCount > 0;
+            }
+            return false;
+        }
+
+        private static string GetFailureCountFromFile(string buildMetricsFilePath)
+        {
+            XDocument doc = XDocument.Load(buildMetricsFilePath);
+            if (doc.Root != null)
+            {
+                var metrics = doc.Root.Element(@"metrics");
+                if (metrics != null)
+                {
+                    var failuresElement = metrics
+                        .Elements(@"metric")
+                        .FirstOrDefault(e =>
+                        {
+                            var nameElement = e.Element(@"name");
+                            return nameElement != null && nameElement.Value == "failures";
+                        });
+
+                    if (failuresElement != null)
+                    {
+                        var valueElement = failuresElement.Element(@"value");
+                        if (valueElement != null)
+                        {
+                            return valueElement.Value;
+                        }
+                    }
+                }
+            }
+            return null;
         }
     }
 }

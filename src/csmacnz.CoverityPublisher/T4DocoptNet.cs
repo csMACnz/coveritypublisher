@@ -7,7 +7,7 @@ namespace csmacnz.CoverityPublisher
     // Generated class for Main.usage.txt
     public class MainArgs
     {
-        public const string USAGE = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
+        public const string Usage = @"PublishCoverity - a simple command-line publishing tool for Coverity Scan - Static Analysis results.
 
 Usage:
   PublishCoverity compress [-o <file>] [-i <folder>] [--overwrite] [--abortOnFailures] [--dryrun] [--nologo]
@@ -42,7 +42,7 @@ What its for:
         public MainArgs(ICollection<string> argv, bool help = true,
                                                       object version = null, bool optionsFirst = false, bool exit = false)
         {
-            _args = new Docopt().Apply(USAGE, argv, help, version, optionsFirst, exit);
+            _args = new Docopt().Apply(Usage, argv, help, version, optionsFirst, exit);
         }
 
         public IDictionary<string, ValueObject> Args

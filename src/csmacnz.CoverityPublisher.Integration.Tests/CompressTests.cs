@@ -27,7 +27,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             Assert.Equal(0, results.ExitCode);
             Assert.False(File.Exists(fileNameToCreate));
         }
-        
+
         [Fact]
         public void FolderDoesntExistErrors()
         {
@@ -99,7 +99,7 @@ namespace csmacnz.CoverityPublisher.Integration.Tests
             var results = RunExe(existingZip, compressionFolder, "--overwrite");
 
             Assert.Equal(0, results.ExitCode);
-            Assert.Contains("Overwritting file '" + existingZip + "' with new compression data.", results.StandardOutput);
+            Assert.Contains("Overwriting file '" + existingZip + "' with new compression data.", results.StandardOutput);
             Assert.True(File.Exists(existingZip));
         }
 

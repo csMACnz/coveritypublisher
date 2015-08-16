@@ -38,22 +38,25 @@ task SetChocolateyPath {
     Write-Output "Chocolatey installed at $script:chocolateyDir";
 }
 
-task RestoreNuGetPackages -depends SetChocolateyPath {
+task SetNugetPath -depends SetChocolateyPath {
     $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
-    $NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
 
-    exec { & $NuGetExe restore $sln_file }
+    $script:NuGetExe = Join-Path $chocolateyBinDir -ChildPath "NuGet.exe";
+}
+
+task RestoreNuGetPackages -depends SetNugetPath {
+    exec { & $script:NuGetExe restore $sln_file }
 }
 
 task GitVersion -depends SetChocolateyPath {
     $chocolateyBinDir = Join-Path $script:chocolateyDir -ChildPath "bin";
     $gitVersionExe = Join-Path $chocolateyBinDir -ChildPath "GitVersion.exe";
 
-    & $gitVersionExe /output buildserver /updateassemblyinfo
+    exec { & $gitVersionExe /output buildserver /updateassemblyinfo }
 }
 
-task InstallResharperCLI {
-    nuget install JetBrains.ReSharper.CommandLineTools -OutputDirectory tools -NonInteractive
+task InstallResharperCLI -depends SetNugetPath {
+    exec { & $script:NuGetExe install JetBrains.ReSharper.CommandLineTools -OutputDirectory tools -NonInteractive }
 }
 
 task dupfinder -depends InstallResharperCLI {

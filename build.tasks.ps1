@@ -5,6 +5,7 @@ properties {
     $script:version = "0.0.1"
     $script:nugetVersion = "0.0.1"
     $script:runCoverity = $false
+    $script:testOptions = ""
 
     # directories
     $base_dir = . resolve-path .\
@@ -68,6 +69,7 @@ task AppVeyorEnvironmentSettings {
         $script:nugetVersion = $env:APPVEYOR_BUILD_VERSION
         echo "nuget version set to $script:nugetVersion"
     }
+    $script:testOptions = "/logger:Appveyor"
 }
 
 task clean {
@@ -122,7 +124,7 @@ task ResolveCoverallsPath {
 task coverage -depends build, coverage-only
 
 task coverage-only {
-    vstest.console.exe /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
+    vstest.console.exe $script:testOptions /inIsolation /Enablecodecoverage /Settings:CodeCoverage.runsettings /TestAdapterPath:".\src\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\_common\" ".\src\csmacnz.CoverityPublisher.Unit.Tests\bin\$configuration\csmacnz.CoverityPublisher.Unit.Tests.dll" ".\src\csmacnz.CoverityPublisher.Integration.Tests\bin\$configuration\csmacnz.CoverityPublisher.Integration.Tests.dll"
     $coverageFilePath = Resolve-Path -path "TestResults\*\*.coverage"
 
     $coverageFilePath = $coverageFilePath.ToString()

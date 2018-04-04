@@ -192,7 +192,7 @@ task setup-coverity-local {
 
 task test-coverity -depends setup-coverity-local, coverity
 
-task coverity -precondition { return $env:APPVEYOR_SCHEDULED_BUILD -eq "True" } {
+task coverity -precondition { return -not $env:APPVEYOR_PULL_REQUEST_NUMBER } {
 
   & cov-build --dir cov-int msbuild "/t:Clean;Build" "/p:Configuration=$configuration" $sln_file
 
